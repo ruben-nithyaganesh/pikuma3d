@@ -42,9 +42,9 @@ void setup() {
 }
 
 void update() {
-	cube_rotation.x += 0.01;
-	cube_rotation.y += 0.01;
-	// cube_rotation.z += 0.01;
+	cube_rotation.x += 0.014;
+	cube_rotation.y += 0.015;
+	cube_rotation.z += 0.012;
 	// for(int i = 0; i < n_points; i++) {
 	// 	vec3 point = points[i];
 
@@ -97,9 +97,16 @@ void render() {
 
 	for(int i = 0; i < N_CUBE_FACES; i++) {
 		Triangle triangle = triangles_to_render[i];
-		draw_rect(0xFFFF0000, triangle.points[0].y, triangle.points[0].x, 4, 4);
-		draw_rect(0xFFFF0000, triangle.points[1].y, triangle.points[1].x, 4, 4);
-		draw_rect(0xFFFF0000, triangle.points[2].y, triangle.points[2].x, 4, 4);
+		draw_rect(0xFFFF0000, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
+		draw_rect(0xFFFF0000, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);
+		draw_rect(0xFFFF0000, triangle.points[2].y - 2, triangle.points[2].x - 2, 5, 5);
+
+		draw_triangle(
+			0xFF999999,
+			triangle.points[0].x, triangle.points[0].y,
+			triangle.points[1].x, triangle.points[1].y,
+			triangle.points[2].x, triangle.points[2].y
+		);
 	}
 
 	render_color_buffer();

@@ -105,6 +105,31 @@ void draw_pixel(uint32_t value, int x, int y) {
 	}
 }
 
+void draw_line(uint32_t value, int x0, int y0, int x1, int y1) {
+	int delta_x = x1 - x0;
+	int delta_y = y1 - y0;
+
+	int side_length = abs(delta_x) >= abs(delta_y) ? abs(delta_x) : abs(delta_y);
+
+	float x_inc = delta_x / (float) side_length;
+	float y_inc = delta_y / (float) side_length;
+
+	float current_x = x0;
+	float current_y = y0;
+
+	for(int i = 0 ; i <= side_length; i++) {
+		draw_pixel(value, round(current_x), round(current_y));
+		current_x += x_inc;
+		current_y += y_inc;
+	}
+}
+
+void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2) {
+	draw_line(value, x0, y0, x1, y1);
+	draw_line(value, x1, y1, x2, y2);
+	draw_line(value, x2, y2, x0, y0);
+}
+
 void draw_rect(uint32_t value, int top, int left, int width, int height) {
 	for(int y = top; y < top + height; y ++) {
 		for(int x = left; x < left + width; x ++) {
