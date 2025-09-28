@@ -3,19 +3,16 @@
 #include "vector.h"
 #include "mesh.h"
 #include "triangle.h"
+#include "array.h"
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define WIDTH 1280
 #define HEIGHT 720
 #define FPS 60
 static float MS_PER_FRAME = (1000.0 / FPS);
 
-Triangle triangles_to_render[N_CUBE_FACES];
-
 const int n_points = 9 * 9 * 9;
 vec3 points[n_points];
 vec2 projected_points[n_points];
-vec3 cube_rotation = { 0., 0., 0. };
 
 const float fov_factor = 840.0;
 vec3 camera_position = { 0., 0., -10. };
@@ -28,6 +25,12 @@ vec2 project(vec3 v3) {
 }
 
 void setup() {
+
+	// load_cube_mesh_data();
+	load_obj_file("assets/teapot.obj", &mesh);
+
+	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
+	triangle_count = 0;
 
 	int point_index = 0;
 	for(float x = -1.; x <= 1.; x += 0.25) {
@@ -42,37 +45,37 @@ void setup() {
 }
 
 void update() {
-	cube_rotation.x += 0.014;
-	cube_rotation.y += 0.015;
-	cube_rotation.z += 0.012;
+	// mesh.rotation.x += 0.014;
+	mesh.rotation.y += 0.015;
+	// mesh.rotation.z += 0.012;
 	// for(int i = 0; i < n_points; i++) {
 	// 	vec3 point = points[i];
 
-	// 	vec3 transformed_point = vec3_rotate_y(point, cube_rotation.y);
-	// 	transformed_point = vec3_rotate_x(transformed_point, cube_rotation.x);
-	// 	transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z);
+	// 	vec3 transformed_point = vec3_rotate_y(point, mesh.rotation.y);
+	// 	transformed_point = vec3_rotate_x(transformed_point, mesh.rotation.x);
+	// 	transformed_point = vec3_rotate_z(transformed_point, mesh.rotation.z);
 
 	// 	transformed_point.z -= camera_position.z;
 	// 	projected_points[i] = project(transformed_point);
 	// 	projected_points[i].x = (window_width / 2.0) + projected_points[i].x;
 	// 	projected_points[i].y = (window_height / 2.0) + projected_points[i].y;
 	// }
-
-	for(int i = 0; i < N_CUBE_FACES; i++) {
-		Face face = cube_faces[i];
+	triangle_count = 0;
+	for(int i = 0; i < mesh.face_count; i++) {
+		Face face = mesh.faces[i];
 		vec3 face_vertices[3];
-		face_vertices[0] = cube_vertices[face.a - 1];
-		face_vertices[1] = cube_vertices[face.b - 1];
-		face_vertices[2] = cube_vertices[face.c - 1];
+		face_vertices[0] = mesh.vertices[face.a - 1];
+		face_vertices[1] = mesh.vertices[face.b - 1];
+		face_vertices[2] = mesh.vertices[face.c - 1];
 
 		Triangle triangle;
 
 		for(int j = 0; j < 3; j++) {
 			vec3 transformed_point = face_vertices[j];	
 
-			transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y);
-			transformed_point = vec3_rotate_x(transformed_point, cube_rotation.x);
-			transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z);
+			transformed_point = vec3_rotate_y(transformed_point, mesh.rotation.y);
+			transformed_point = vec3_rotate_x(transformed_point, mesh.rotation.x);
+			transformed_point = vec3_rotate_z(transformed_point, mesh.rotation.z);
 
 			transformed_point.z -= camera_position.z;
 
@@ -82,8 +85,9 @@ void update() {
 
 			triangle.points[j] = projected_point;
 		}
-
-		triangles_to_render[i] = triangle;
+		
+		// array_push(triangles_to_render, triangle);
+		triangles_to_render[triangle_count++] = triangle;
 	}
 }
 
@@ -95,7 +99,7 @@ void render() {
 	// 	draw_rect(0xFFFF0000, point.y, point.x, 4, 4);
 	// }
 
-	for(int i = 0; i < N_CUBE_FACES; i++) {
+	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
 		draw_rect(0xFFFF0000, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
 		draw_rect(0xFFFF0000, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);

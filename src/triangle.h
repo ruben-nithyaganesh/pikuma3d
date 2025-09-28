@@ -11,8 +11,7 @@ typedef struct {
     vec2 points[3];
 } Triangle;
 
-#define N_CUBE_FACES 12
-extern Face cube_faces[N_CUBE_FACES];
+extern Face cube_faces[12];
 
 
 #endif
