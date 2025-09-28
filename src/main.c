@@ -10,12 +10,8 @@
 #define FPS 60
 static float MS_PER_FRAME = (1000.0 / FPS);
 
-const int n_points = 9 * 9 * 9;
-vec3 points[n_points];
-vec2 projected_points[n_points];
-
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., -10. };
+vec3 camera_position = { 0., 0., -80. };
 
 vec2 project(vec3 v3) {
     vec2 projected;
@@ -25,27 +21,14 @@ vec2 project(vec3 v3) {
 }
 
 void setup() {
-
 	// load_cube_mesh_data();
-	load_obj_file("assets/teapot.obj", &mesh);
-
+	load_obj_file("assets/pumpkin.obj", &mesh);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangle_count = 0;
-
-	int point_index = 0;
-	for(float x = -1.; x <= 1.; x += 0.25) {
-		for(float y = -1.; y <= 1.; y += 0.25) {
-			for(float z = -1.; z <= 1.; z += 0.25) {
-				vec3 v = { .x = x, .y = y, .z = z};
-				points[point_index] = v;
-				point_index++;
-			}
-		}
-	}
 }
 
 void update() {
-	// mesh.rotation.x += 0.014;
+	mesh.rotation.x += 0.014;
 	mesh.rotation.y += 0.015;
 	// mesh.rotation.z += 0.012;
 	// for(int i = 0; i < n_points; i++) {

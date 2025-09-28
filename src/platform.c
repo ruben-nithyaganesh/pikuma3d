@@ -105,7 +105,18 @@ void draw_pixel(uint32_t value, int x, int y) {
 	}
 }
 
+int bound(int x, int lower, int upper) {
+	if(x < lower) return 0;
+	if(x > upper) return upper;
+	return x;
+}
+
 void draw_line(uint32_t value, int x0, int y0, int x1, int y1) {
+	x0 = bound(x0, 0, window_width);
+	x1 = bound(x1, 0, window_width);
+	y0 = bound(y0, 0, window_height);
+	y1 = bound(y1, 0, window_height);
+
 	#define DDA
 	#ifdef DDA
 		int delta_x = x1 - x0;
