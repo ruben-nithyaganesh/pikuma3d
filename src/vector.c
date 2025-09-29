@@ -27,8 +27,8 @@ vec2 vec2_div(vec2 v, double s) {
     return a;
 }
 
-double vec2_dot(vec2 v1, vec2 v2) {
-    double dot = v1.x * v2.x + v1.y * v2.y;
+float vec2_dot(vec2 v1, vec2 v2) {
+    float dot = v1.x * v2.x + v1.y * v2.y;
     return dot;
 }
 
@@ -83,8 +83,8 @@ vec3 vec3_div(vec3 v, double s) {
     return a;
 }
 
-double vec3_dot(vec3 v1, vec3 v2) {
-    double dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+float vec3_dot(vec3 v1, vec3 v2) {
+    float dot = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     return dot;
 }
 
@@ -137,4 +137,12 @@ vec3 vec3_rotate_z(vec3 v, float angle){
         .z = v.z
     };
     return rotated;
+}
+
+vec3 vec3_cross_prod(vec3 v1, vec3 v2) {
+	vec3 cross_prod;
+	cross_prod.x = v1.y * v2.z - v1.z * v2.y;
+	cross_prod.y = v1.z * v2.x - v1.x * v2.z;
+	cross_prod.z = v1.x * v2.y - v1.y * v2.x;
+	return cross_prod;
 }

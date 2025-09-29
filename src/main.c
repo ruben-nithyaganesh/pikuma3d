@@ -8,6 +8,7 @@
 #define WIDTH 1280
 #define HEIGHT 720
 #define FPS 60
+
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
@@ -22,27 +23,22 @@ vec2 project(vec3 v3) {
 
 void setup() {
 	// load_cube_mesh_data();
-	load_obj_file("assets/pumpkin.obj", &mesh);
+	load_obj_file("assets/teddy.obj", &mesh);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangle_count = 0;
+	
+	flags = (flags | F_ROTATE);
+	flags = (flags | F_BACK_FACE_CULLING);
 }
 
 void update() {
-	mesh.rotation.x += 0.014;
-	mesh.rotation.y += 0.015;
-	// mesh.rotation.z += 0.012;
-	// for(int i = 0; i < n_points; i++) {
-	// 	vec3 point = points[i];
 
-	// 	vec3 transformed_point = vec3_rotate_y(point, mesh.rotation.y);
-	// 	transformed_point = vec3_rotate_x(transformed_point, mesh.rotation.x);
-	// 	transformed_point = vec3_rotate_z(transformed_point, mesh.rotation.z);
+	if(flags & F_ROTATE) {
+		// mesh.rotation.x += 0.014;
+		mesh.rotation.y -= 0.015;
+		// mesh.rotation.z += 0.012;
+	}
 
-	// 	transformed_point.z -= camera_position.z;
-	// 	projected_points[i] = project(transformed_point);
-	// 	projected_points[i].x = (window_width / 2.0) + projected_points[i].x;
-	// 	projected_points[i].y = (window_height / 2.0) + projected_points[i].y;
-	// }
 	triangle_count = 0;
 	for(int i = 0; i < mesh.face_count; i++) {
 		Face face = mesh.faces[i];
@@ -52,10 +48,10 @@ void update() {
 		face_vertices[2] = mesh.vertices[face.c - 1];
 
 		Triangle triangle;
-
+		vec3 transformed_face_vertices[3];
 		for(int j = 0; j < 3; j++) {
-			vec3 transformed_point = face_vertices[j];	
 
+			vec3 transformed_point = face_vertices[j];	
 			transformed_point = vec3_rotate_y(transformed_point, mesh.rotation.y);
 			transformed_point = vec3_rotate_x(transformed_point, mesh.rotation.x);
 			transformed_point = vec3_rotate_z(transformed_point, mesh.rotation.z);
@@ -67,26 +63,47 @@ void update() {
 			projected_point.y = (window_height / 2.0) + projected_point.y;
 
 			triangle.points[j] = projected_point;
+
+			transformed_face_vertices[j] = transformed_point;
 		}
 		
-		// array_push(triangles_to_render, triangle);
-		triangles_to_render[triangle_count++] = triangle;
+		// back face culling)
+
+		if(flags & F_BACK_FACE_CULLING) {
+			vec3 a = transformed_face_vertices[0];
+			vec3 b = transformed_face_vertices[1];
+			vec3 c = transformed_face_vertices[2];
+
+			vec3 ab = vec3_sub(b, a);
+			vec3 ac = vec3_sub(c, a);
+			vec3 normal = vec3_cross_prod(ab, ac);
+			vec3 camera_ray = vec3_sub(camera_position, a);
+
+			float dot_prod = vec3_dot(normal, camera_ray);
+
+			if(dot_prod < 0.0) {
+				// array_push(triangles_to_render, triangle);
+				triangles_to_render[triangle_count++] = triangle;
+			}
+		}
+		else {
+			triangles_to_render[triangle_count++] = triangle;
+		}
 	}
 }
 
 void render() {
 	draw_grid();
 
-	// for(int i = 0; i < n_points; i++) {
-	// 	vec2 point = projected_points[i];
-	// 	draw_rect(0xFFFF0000, point.y, point.x, 4, 4);
-	// }
-
 	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
-		draw_rect(0xFFFF0000, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
-		draw_rect(0xFFFF0000, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);
-		draw_rect(0xFFFF0000, triangle.points[2].y - 2, triangle.points[2].x - 2, 5, 5);
+
+		if(flags & F_DRAW_VERTICES) {
+			uint32_t rect_col = 0xFFFF0000;
+			draw_rect(rect_col, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
+			draw_rect(rect_col, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);
+			draw_rect(rect_col, triangle.points[2].y - 2, triangle.points[2].x - 2, 5, 5);
+		}
 
 		draw_triangle(
 			0xFF999999,

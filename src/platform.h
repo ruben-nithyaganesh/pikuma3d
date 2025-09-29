@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
+#define F_DRAW_VERTICES (0x00000001)
+#define F_ROTATE (0x00000001 << 1)
+#define F_BACK_FACE_CULLING (0x00000001 << 2)
+extern uint32_t flags;
+
 // Variables
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;

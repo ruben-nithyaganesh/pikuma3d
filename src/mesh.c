@@ -62,6 +62,8 @@ void load_obj_file(char *filename, Mesh *mesh) {
 	
 	mesh->vertices = NULL;
 	mesh->faces = NULL;
+	mesh->vertices_count = 0;
+	mesh->face_count = 0;
 
 	char type;
 	float vx, vy, vz;
@@ -88,9 +90,14 @@ void load_obj_file(char *filename, Mesh *mesh) {
 			array_push(mesh->faces, face);
 			mesh->face_count++;
 		}
+
+		// skip the line if we don't recognise the first character
+		else {
+			skip_line(obj_file);
+		}
 	}
 		
-	printf("loaded %d vertices\n", array_length(mesh->vertices));
-	printf("loaded %d faces\n", array_length(mesh->faces));
+	// printf("loaded %d vertices\n", array_length(mesh->vertices));
+	// printf("loaded %d faces\n", array_length(mesh->faces));
 	fclose(obj_file);
 }

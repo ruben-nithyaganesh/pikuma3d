@@ -1,5 +1,7 @@
 #include "platform.h"
 
+uint32_t flags = 0;
+
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 uint32_t *color_buffer = NULL;
@@ -78,6 +80,15 @@ int init_window(int man_width, int man_height, int fullscreen) {
 	return 1;
 }
 
+uint32_t flag_toggle(uint32_t flags, uint32_t f) {
+	if(flags & f) {
+		return flags & ~f;
+	}
+	else {
+		return flags | f;
+	}
+}
+
 void process_events() {
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
@@ -91,6 +102,15 @@ void process_events() {
 			{
 				if(event.key.keysym.sym == SDLK_q) {
 					running = 0;
+				}
+				if(event.key.keysym.sym == SDLK_r) {
+					flags = flag_toggle(flags, F_ROTATE);
+				}
+				if(event.key.keysym.sym == SDLK_v) {
+					flags = flag_toggle(flags, F_DRAW_VERTICES);
+				}
+				if(event.key.keysym.sym == SDLK_b) {
+					flags = flag_toggle(flags, F_BACK_FACE_CULLING);
 				}
 			}break;
 			default:
