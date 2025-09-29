@@ -46,29 +46,24 @@ void update() {
 		face_vertices[0] = mesh.vertices[face.a - 1];
 		face_vertices[1] = mesh.vertices[face.b - 1];
 		face_vertices[2] = mesh.vertices[face.c - 1];
-
-		Triangle triangle;
+		
+		// transform each vertex of the current face according to the current mesh rotation
 		vec3 transformed_face_vertices[3];
 		for(int j = 0; j < 3; j++) {
-
 			vec3 transformed_point = face_vertices[j];	
 			transformed_point = vec3_rotate_y(transformed_point, mesh.rotation.y);
 			transformed_point = vec3_rotate_x(transformed_point, mesh.rotation.x);
 			transformed_point = vec3_rotate_z(transformed_point, mesh.rotation.z);
-
 			transformed_point.z -= camera_position.z;
-
-			vec2 projected_point = project(transformed_point);
-			projected_point.x = (window_width / 2.0) + projected_point.x;
-			projected_point.y = (window_height / 2.0) + projected_point.y;
-
-			triangle.points[j] = projected_point;
 
 			transformed_face_vertices[j] = transformed_point;
 		}
 		
-		// back face culling)
+		// default dot_prod > 0.0, i.e we draw the triangle
+		float dot_prod = 1.0;
 
+		// if back face culling is enabled, compute actual dot prod
+		// of face normal to camera position vector
 		if(flags & F_BACK_FACE_CULLING) {
 			vec3 a = transformed_face_vertices[0];
 			vec3 b = transformed_face_vertices[1];
@@ -79,14 +74,21 @@ void update() {
 			vec3 normal = vec3_cross_prod(ab, ac);
 			vec3 camera_ray = vec3_sub(camera_position, a);
 
-			float dot_prod = vec3_dot(normal, camera_ray);
-
-			if(dot_prod < 0.0) {
-				// array_push(triangles_to_render, triangle);
-				triangles_to_render[triangle_count++] = triangle;
-			}
+			dot_prod = vec3_dot(normal, camera_ray);
 		}
-		else {
+		
+		
+		int should_render_face = (dot_prod > 0.0);
+		// if we should render the current face, project face vertices
+		// into a triangle to be rendered
+		if(should_render_face) {
+			Triangle triangle;
+			for(int j = 0; j < 3; j++) {
+				vec2 projected_point = project(transformed_face_vertices[j]);
+				projected_point.x = (window_width / 2.0) + projected_point.x;
+				projected_point.y = (window_height / 2.0) + projected_point.y;
+				triangle.points[j] = projected_point;
+			}
 			triangles_to_render[triangle_count++] = triangle;
 		}
 	}
