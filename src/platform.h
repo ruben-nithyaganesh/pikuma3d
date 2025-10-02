@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
+#define m_min(a, b) ((a <= b) ? a : b)
 #define F_DRAW_VERTICES (0x00000001)
 #define F_ROTATE (0x00000001 << 1)
 #define F_BACK_FACE_CULLING (0x00000001 << 2)
@@ -33,6 +34,7 @@ void draw_grid();
 void draw_rect(uint32_t value, int top, int left, int width, int height);
 void draw_line(uint32_t value, int x0, int y0, int x1, int y1);
 void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
+void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
 void draw_pixel(uint32_t value, int x, int y);
 void render_color_buffer();
 void render_present();

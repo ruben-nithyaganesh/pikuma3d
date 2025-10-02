@@ -1,5 +1,4 @@
 #include "platform.h"
-
 uint32_t flags = 0;
 
 SDL_Window *window = NULL;
@@ -165,6 +164,97 @@ void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 	draw_line(value, x0, y0, x1, y1);
 	draw_line(value, x1, y1, x2, y2);
 	draw_line(value, x2, y2, x0, y0);
+}
+
+void draw_flat_bottom_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2) {
+	int delta_x1 = (x1 - x0);
+	int delta_y1 = (y1 - y0);
+	int delta_x2 = (x2 - x0);
+	int delta_y2 = (y2 - y0);
+
+	float x_1_inc = (delta_x1 == 0) ? 0.0 : (1.0 / ((float) delta_y1 / (float) delta_x1));
+	float x_2_inc = (delta_x2 == 0) ? 0.0 : (1.0 / ((float) delta_y2 / (float) delta_x2));
+	
+	float x_start = x0;
+	float x_end = x0;
+
+	for(int i = y0 + 1; i <= y1; i++) {
+		x_start += x_1_inc;
+		x_end += x_2_inc;
+
+		int x_start_int = round(x_start);
+		int x_end_int = round(x_end);
+
+		int start = m_min(x_start_int, x_end_int);
+		int len = abs(x_start_int - x_end_int);
+		for(int j = 0; j <= len; j++)
+			draw_pixel(value, start + j, i);
+
+	}
+}
+
+void draw_flat_top_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2) {
+	int delta_x1 = (x2 - x0);
+	int delta_y1 = (y2 - y0);
+	int delta_x2 = (x2 - x1);
+	int delta_y2 = (y2 - y1);
+
+	float x_1_inc = (delta_x1 == 0) ? 0.0 : (1.0 / ((float) delta_y1 / (float) delta_x1));
+	float x_2_inc = (delta_x2 == 0) ? 0.0 : (1.0 / ((float) delta_y2 / (float) delta_x2));
+
+	float x_start = x2;
+	float x_end = x2;
+	
+	for(int i = y2 - 1; i >= y1; --i) {
+		x_start -= x_1_inc;
+		x_end -= x_2_inc;
+
+		int x_start_int = round(x_start);
+		int x_end_int = round(x_end);
+
+		int start = m_min(x_start_int, x_end_int);
+		int len = abs(x_start_int - x_end_int);
+		for(int j = 0; j <= len; j++)
+			draw_pixel(value, start + j, i);
+	}
+}
+
+void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2) {
+	// sort triangle points in order of y
+	// y0 < y1 < y2
+	if(y1 > y2) {
+		int temp_x = x1;
+		int temp_y = y1;
+		x1 = x2;
+		y1 = y2;
+		x2 = temp_x;
+		y2 = temp_y;
+	}
+
+	if(y0 > y1) {
+		int temp_x = x0;
+		int temp_y = y0;
+		x0 = x1;
+		y0 = y1;
+		x1 = temp_x;
+		y1 = temp_y;
+	}
+	
+	if(y1 > y2) {
+		int temp_x = x1;
+		int temp_y = y1;
+		x1 = x2;
+		y1 = y2;
+		x2 = temp_x;
+		y2 = temp_y;
+	}
+
+	// get (Mx, My), intersection of triangle midpoint line
+	int My = y1;
+	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+
+	draw_flat_bottom_triangle(value, x0, y0, x1, y1, Mx, My);
+	draw_flat_top_triangle(value, x1, y1, Mx, My, x2, y2);
 }
 
 void draw_rect(uint32_t value, int top, int left, int width, int height) {

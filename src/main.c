@@ -12,7 +12,7 @@
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., -80. };
+vec3 camera_position = { 0., 0., -90. };
 
 vec2 project(vec3 v3) {
     vec2 projected;
@@ -34,9 +34,9 @@ void setup() {
 void update() {
 
 	if(flags & F_ROTATE) {
-		// mesh.rotation.x += 0.014;
-		mesh.rotation.y -= 0.015;
-		// mesh.rotation.z += 0.012;
+		mesh.rotation.x += 0.004;
+		mesh.rotation.y -= 0.005;
+		// mesh.rotation.z += 0.006;
 	}
 
 	triangle_count = 0;
@@ -65,8 +65,8 @@ void update() {
 		// if back face culling is enabled, compute actual dot prod
 		// of face normal to camera position vector
 		if(flags & F_BACK_FACE_CULLING) {
-			vec3 a = transformed_face_vertices[0];
-			vec3 b = transformed_face_vertices[1];
+			vec3 a = transformed_face_vertices[1];
+			vec3 b = transformed_face_vertices[0];
 			vec3 c = transformed_face_vertices[2];
 
 			vec3 ab = vec3_sub(b, a);
@@ -96,23 +96,29 @@ void update() {
 
 void render() {
 	draw_grid();
-
+	
 	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
+
+		fill_triangle(
+			0xFF999999,
+			triangle.points[0].x, triangle.points[0].y,
+			triangle.points[1].x, triangle.points[1].y,
+			triangle.points[2].x, triangle.points[2].y
+		);
 
 		if(flags & F_DRAW_VERTICES) {
 			uint32_t rect_col = 0xFFFF0000;
 			draw_rect(rect_col, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
 			draw_rect(rect_col, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);
 			draw_rect(rect_col, triangle.points[2].y - 2, triangle.points[2].x - 2, 5, 5);
+			draw_triangle(
+				0xFF222222,
+				triangle.points[0].x, triangle.points[0].y,
+				triangle.points[1].x, triangle.points[1].y,
+				triangle.points[2].x, triangle.points[2].y
+			);
 		}
-
-		draw_triangle(
-			0xFF999999,
-			triangle.points[0].x, triangle.points[0].y,
-			triangle.points[1].x, triangle.points[1].y,
-			triangle.points[2].x, triangle.points[2].y
-		);
 	}
 
 	render_color_buffer();
