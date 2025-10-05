@@ -115,7 +115,7 @@ void render() {
 
 		if(flags & F_FILL) {
 			fill_triangle(
-				0xFF222222,
+				0xFF777777,
 				triangle.points[0].x, triangle.points[0].y,
 				triangle.points[1].x, triangle.points[1].y,
 				triangle.points[2].x, triangle.points[2].y
@@ -123,14 +123,14 @@ void render() {
 		}
 
 		if(flags & F_DRAW_VERTICES) {
-			uint32_t rect_col = 0xFFFF0000;
-			draw_rect(rect_col, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
-			draw_rect(rect_col, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);
-			draw_rect(rect_col, triangle.points[2].y - 2, triangle.points[2].x - 2, 5, 5);
+			uint32_t rect_col = 0xFF990000;
+			draw_rect(rect_col, triangle.points[0].y - 1, triangle.points[0].x - 1, 3, 3);
+			draw_rect(rect_col, triangle.points[1].y - 1, triangle.points[1].x - 1, 3, 3);
+			draw_rect(rect_col, triangle.points[2].y - 1, triangle.points[2].x - 1, 3, 3);
 		}
 		if(flags & F_DRAW_LINES) {
 			draw_triangle(
-				0xFF999999,
+				0xFF222222,
 				triangle.points[0].x, triangle.points[0].y,
 				triangle.points[1].x, triangle.points[1].y,
 				triangle.points[2].x, triangle.points[2].y
