@@ -33,4 +33,15 @@ vec3 vec3_cross_prod(vec3 v1, vec3 v2);
 vec3 vec3_rotate_x(vec3 v, float angle);
 vec3 vec3_rotate_y(vec3 v, float angle);
 vec3 vec3_rotate_z(vec3 v, float angle);
+
+// mat3
+typedef struct {
+    float e00, e01, e02;
+    float e10, e11, e12;
+    float e20, e21, e22;
+} mat3;
+
+mat3 mat3_add(mat3 m1, mat3 m2);
+mat3 mat3_sub(mat3 m1, mat3 m2);
+mat3 mat3_mul(mat3 m1, mat3 m2);
 #endif

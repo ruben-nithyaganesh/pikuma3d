@@ -146,3 +146,54 @@ vec3 vec3_cross_prod(vec3 v1, vec3 v2) {
 	cross_prod.z = v1.x * v2.y - v1.y * v2.x;
 	return cross_prod;
 }
+
+mat3 mat3_add(mat3 m1, mat3 m2) {
+	mat3 res;
+	res.e00 = m1.e00 + m2.e00;
+	res.e01 = m1.e01 + m2.e01;
+	res.e02 = m1.e02 + m2.e02;
+
+	res.e10 = m1.e10 + m2.e10;
+	res.e11 = m1.e11 + m2.e11;
+	res.e12 = m1.e12 + m2.e12;
+
+	res.e20 = m1.e20 + m2.e20;
+	res.e21 = m1.e21 + m2.e21;
+	res.e22 = m1.e22 + m2.e22;
+
+	return res;
+}
+
+mat3 mat3_sub(mat3 m1, mat3 m2) {
+	mat3 res;
+	res.e00 = m1.e00 - m2.e00;
+	res.e01 = m1.e01 - m2.e01;
+	res.e02 = m1.e02 - m2.e02;
+
+	res.e10 = m1.e10 - m2.e10;
+	res.e11 = m1.e11 - m2.e11;
+	res.e12 = m1.e12 - m2.e12;
+
+	res.e20 = m1.e20 - m2.e20;
+	res.e21 = m1.e21 - m2.e21;
+	res.e22 = m1.e22 - m2.e22;
+
+	return res;
+}
+
+mat3 mat3_mul(mat3 m1, mat3 m2) {
+	mat3 res;
+	res.e00 = (m1.e00 * m2.e00) + (m1.e01 * m2.e10) + (m1.e02 * m2.e20);
+	res.e01 = (m1.e00 * m2.e01) + (m1.e01 * m2.e11) + (m1.e02 * m2.e21);
+	res.e02 = (m1.e00 * m2.e02) + (m1.e01 * m2.e12) + (m1.e02 * m2.e22);
+
+	res.e10 = (m1.e10 * m2.e00) + (m1.e11 * m2.e10) + (m1.e12 * m2.e20);
+	res.e11 = (m1.e10 * m2.e01) + (m1.e11 * m2.e11) + (m1.e12 * m2.e21);
+	res.e12 = (m1.e10 * m2.e02) + (m1.e11 * m2.e12) + (m1.e12 * m2.e22);
+
+	res.e20 = (m1.e20 * m2.e00) + (m1.e21 * m2.e10) + (m1.e22 * m2.e20);
+	res.e21 = (m1.e20 * m2.e01) + (m1.e21 * m2.e11) + (m1.e22 * m2.e21);
+	res.e22 = (m1.e20 * m2.e02) + (m1.e21 * m2.e12) + (m1.e22 * m2.e22);
+	return res;
+}
+
