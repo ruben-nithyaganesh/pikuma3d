@@ -22,13 +22,19 @@ vec2 project(vec3 v3) {
 }
 
 void setup() {
+
 	// load_cube_mesh_data();
 	load_obj_file("assets/teddy.obj", &mesh);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangle_count = 0;
 	
+	flags = 0x00000000;
 	flags = (flags | F_ROTATE);
 	flags = (flags | F_BACK_FACE_CULLING);
+	flags = (flags | F_FILL);
+	flags = (flags | F_DRAW_VERTICES);
+	flags = (flags | F_DRAW_LINES);
+	flags = (flags | F_SORT_Z_DEPTH);
 }
 
 void update() {
@@ -65,8 +71,8 @@ void update() {
 		// if back face culling is enabled, compute actual dot prod
 		// of face normal to camera position vector
 		if(flags & F_BACK_FACE_CULLING) {
-			vec3 a = transformed_face_vertices[1];
-			vec3 b = transformed_face_vertices[0];
+			vec3 a = transformed_face_vertices[0];
+			vec3 b = transformed_face_vertices[1];
 			vec3 c = transformed_face_vertices[2];
 
 			vec3 ab = vec3_sub(b, a);
@@ -83,11 +89,14 @@ void update() {
 		// into a triangle to be rendered
 		if(should_render_face) {
 			Triangle triangle;
+			triangle.avg_depth = 0.0;
 			for(int j = 0; j < 3; j++) {
 				vec2 projected_point = project(transformed_face_vertices[j]);
 				projected_point.x = (window_width / 2.0) + projected_point.x;
 				projected_point.y = (window_height / 2.0) + projected_point.y;
 				triangle.points[j] = projected_point;
+
+				triangle.avg_depth += transformed_face_vertices[j].z / 3.0;
 			}
 			triangles_to_render[triangle_count++] = triangle;
 		}
@@ -96,24 +105,32 @@ void update() {
 
 void render() {
 	draw_grid();
-	
+
+	if(flags & F_SORT_Z_DEPTH) {
+		merge_sort_triangles(triangles_to_render, triangle_count);
+	}
+
 	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
 
-		fill_triangle(
-			0xFF999999,
-			triangle.points[0].x, triangle.points[0].y,
-			triangle.points[1].x, triangle.points[1].y,
-			triangle.points[2].x, triangle.points[2].y
-		);
+		if(flags & F_FILL) {
+			fill_triangle(
+				0xFF222222,
+				triangle.points[0].x, triangle.points[0].y,
+				triangle.points[1].x, triangle.points[1].y,
+				triangle.points[2].x, triangle.points[2].y
+			);
+		}
 
 		if(flags & F_DRAW_VERTICES) {
 			uint32_t rect_col = 0xFFFF0000;
 			draw_rect(rect_col, triangle.points[0].y - 2, triangle.points[0].x - 2, 5, 5);
 			draw_rect(rect_col, triangle.points[1].y - 2, triangle.points[1].x - 2, 5, 5);
 			draw_rect(rect_col, triangle.points[2].y - 2, triangle.points[2].x - 2, 5, 5);
+		}
+		if(flags & F_DRAW_LINES) {
 			draw_triangle(
-				0xFF222222,
+				0xFF999999,
 				triangle.points[0].x, triangle.points[0].y,
 				triangle.points[1].x, triangle.points[1].y,
 				triangle.points[2].x, triangle.points[2].y

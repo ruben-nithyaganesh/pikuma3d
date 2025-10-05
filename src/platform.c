@@ -102,14 +102,23 @@ void process_events() {
 				if(event.key.keysym.sym == SDLK_q) {
 					running = 0;
 				}
-				if(event.key.keysym.sym == SDLK_r) {
+				else if(event.key.keysym.sym == SDLK_r) {
 					flags = flag_toggle(flags, F_ROTATE);
 				}
-				if(event.key.keysym.sym == SDLK_v) {
+				else if(event.key.keysym.sym == SDLK_v) {
 					flags = flag_toggle(flags, F_DRAW_VERTICES);
 				}
-				if(event.key.keysym.sym == SDLK_b) {
+				else if(event.key.keysym.sym == SDLK_b) {
 					flags = flag_toggle(flags, F_BACK_FACE_CULLING);
+				}
+				else if(event.key.keysym.sym == SDLK_l) {
+					flags = flag_toggle(flags, F_DRAW_LINES);
+				}
+				else if(event.key.keysym.sym == SDLK_f) {
+					flags = flag_toggle(flags, F_FILL);
+				}
+				else if(event.key.keysym.sym == SDLK_z) {
+					flags = flag_toggle(flags, F_SORT_Z_DEPTH);
 				}
 			}break;
 			default:

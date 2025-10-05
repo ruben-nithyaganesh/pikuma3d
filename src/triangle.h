@@ -9,9 +9,11 @@ typedef struct {
 
 typedef struct {
     vec2 points[3];
+	float avg_depth;
 } Triangle;
 
 extern Face cube_faces[12];
 
+void merge_sort_triangles(Triangle *t, int len);
 
 #endif

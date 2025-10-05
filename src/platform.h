@@ -6,9 +6,14 @@
 #include <SDL2/SDL.h>
 
 #define m_min(a, b) ((a <= b) ? a : b)
-#define F_DRAW_VERTICES (0x00000001)
-#define F_ROTATE (0x00000001 << 1)
+
+#define F_DRAW_VERTICES 	(0x00000001)
+#define F_ROTATE 			(0x00000001 << 1)
 #define F_BACK_FACE_CULLING (0x00000001 << 2)
+#define F_DRAW_LINES		(0x00000001 << 3)
+#define F_FILL 				(0x00000001 << 4)
+#define F_SORT_Z_DEPTH 		(0x00000001 << 5)
+
 extern uint32_t flags;
 
 // Variables
