@@ -14,6 +14,6 @@ typedef struct {
 
 extern Face cube_faces[12];
 
-void merge_sort_triangles(Triangle *t, int len);
+void merge_sort_triangles(Triangle *t, Triangle *scratch, int len);
 
 #endif

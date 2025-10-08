@@ -7,14 +7,22 @@
 
 #define m_min(a, b) ((a <= b) ? a : b)
 
+
+extern uint32_t controller;
+#define C_UP	 		(0x00000001)
+#define C_DOWN	  		(0x00000001 << 1)
+#define C_LEFT			(0x00000001 << 2)
+#define C_RIGHT			(0x00000001 << 3)
+#define C_LOOK_LEFT		(0x00000001 << 4)
+#define C_LOOK_RIGHT	(0x00000001 << 5)
+
+extern uint32_t flags;
 #define F_DRAW_VERTICES 	(0x00000001)
 #define F_ROTATE 			(0x00000001 << 1)
 #define F_BACK_FACE_CULLING (0x00000001 << 2)
 #define F_DRAW_LINES		(0x00000001 << 3)
 #define F_FILL 				(0x00000001 << 4)
 #define F_SORT_Z_DEPTH 		(0x00000001 << 5)
-
-extern uint32_t flags;
 
 // Variables
 extern SDL_Window *window;
@@ -36,6 +44,7 @@ void destroy_window();
 
 // rendering
 void draw_grid();
+void draw_gradient(uint32_t start, uint32_t end);
 void draw_rect(uint32_t value, int top, int left, int width, int height);
 void draw_line(uint32_t value, int x0, int y0, int x1, int y1);
 void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);

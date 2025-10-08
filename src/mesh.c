@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 Triangle *triangles_to_render = NULL;
+Triangle *triangles_to_render_scratch = NULL;
 int triangle_count = 0;
 
 vec3 cube_vertices[8] = {
@@ -24,7 +25,9 @@ Mesh mesh = {
     .vertices_count = 0,
     .vertices = NULL,
 
-    .rotation = { .0, .0, .0 }
+    .scale 		 = { .1, .1, .1 },
+    .translation = { .0, .0, .0 },
+    .rotation 	 = { .0, .0, .0 }
 };
 
 char skip_line(FILE *f) {

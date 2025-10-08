@@ -57,4 +57,21 @@ char* mat4_tostring(mat4 *m);
 void mat4_load_from_text(const char* filename, mat4 *m);
 mat4 mat4_mul(mat4 m1, mat4 m2);
 
+mat4 mat4_identity();
+mat4 mat4_scale_matrix(float sx, float sy, float sz);
+mat4 mat4_translation_matrix(float tx, float ty, float tz);
+mat4 mat4_rotation_matrix_x(float a);
+mat4 mat4_rotation_matrix_y(float a);
+mat4 mat4_rotation_matrix_z(float a);
+mat4 mat4_projection_matrix(float fov, float aspect, float znear, float zfar);
+
+// vec4
+typedef struct {
+    float x, y, z, w;
+} vec4;
+
+vec4 mat4_mul_vec4(mat4 m, vec4 v);
+vec4 vec4_from_vec3(vec3 v3);
+vec3 vec3_from_vec4(vec4 v4);
+
 #endif

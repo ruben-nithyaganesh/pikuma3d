@@ -1,5 +1,6 @@
 #include "platform.h"
 uint32_t flags = 0;
+uint32_t controller = 0;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -88,6 +89,15 @@ uint32_t flag_toggle(uint32_t flags, uint32_t f) {
 	}
 }
 
+uint32_t flag_set(uint32_t flags, uint32_t f, uint8_t on) {
+	if(on) {
+		return flags | f;
+	}
+	else {
+		return flags & ~f;
+	}
+}
+
 void process_events() {
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
@@ -98,6 +108,27 @@ void process_events() {
 			break;
 
 			case SDL_KEYDOWN:
+			{
+				if(event.key.keysym.sym == SDLK_a) {
+					controller = flag_set(controller, C_LEFT, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_d) {
+					controller = flag_set(controller, C_RIGHT, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_w) {
+					controller = flag_set(controller, C_UP, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_s) {
+					controller = flag_set(controller, C_DOWN, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_j) {
+					controller = flag_set(controller, C_LOOK_LEFT, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_l) {
+					controller = flag_set(controller, C_LOOK_RIGHT, 1);
+				}
+			}break;
+			case SDL_KEYUP:
 			{
 				if(event.key.keysym.sym == SDLK_q) {
 					running = 0;
@@ -111,7 +142,7 @@ void process_events() {
 				else if(event.key.keysym.sym == SDLK_b) {
 					flags = flag_toggle(flags, F_BACK_FACE_CULLING);
 				}
-				else if(event.key.keysym.sym == SDLK_l) {
+				else if(event.key.keysym.sym == SDLK_e) {
 					flags = flag_toggle(flags, F_DRAW_LINES);
 				}
 				else if(event.key.keysym.sym == SDLK_f) {
@@ -119,6 +150,26 @@ void process_events() {
 				}
 				else if(event.key.keysym.sym == SDLK_z) {
 					flags = flag_toggle(flags, F_SORT_Z_DEPTH);
+				}
+
+				// controller stuff
+				else if(event.key.keysym.sym == SDLK_a) {
+					controller = flag_set(controller, C_LEFT, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_d) {
+					controller = flag_set(controller, C_RIGHT, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_w) {
+					controller = flag_set(controller, C_UP, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_s) {
+					controller = flag_set(controller, C_DOWN, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_j) {
+					controller = flag_set(controller, C_LOOK_LEFT, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_l) {
+					controller = flag_set(controller, C_LOOK_RIGHT, 0);
 				}
 			}break;
 			default:
@@ -271,6 +322,43 @@ void draw_rect(uint32_t value, int top, int left, int width, int height) {
 		for(int x = left; x < left + width; x ++) {
             draw_pixel(value, x, y);
 		}
+	}
+}
+
+void draw_gradient(uint32_t start, uint32_t end) {
+	
+	uint8_t a_start = (start & 0xFF000000) >> 24;
+	uint8_t r_start = (start & 0x00FF0000) >> 16;
+	uint8_t g_start = (start & 0x0000FF00) >> 8;
+	uint8_t b_start = (start & 0x000000FF);
+
+	uint8_t a_end = (end & 0xFF000000) >> 24;
+	uint8_t r_end = (end & 0x00FF0000) >> 16;
+	uint8_t g_end = (end & 0x0000FF00) >> 8;
+	uint8_t b_end = (end & 0x000000FF);
+
+	float a_inc = (a_end - a_start) / (float)window_height;
+	float r_inc = (r_end - r_start) / (float)window_height;
+	float g_inc = (g_end - g_start) / (float)window_height;
+	float b_inc = (b_end - b_start) / (float)window_height;
+	
+	float a, r, g, b;
+	a = (float)a_start;
+	r = (float)r_start;
+	g = (float)g_start;
+	b = (float)b_start;
+
+	uint32_t col = start;
+	for(int y = 0; y < window_height; y++) {
+		for(int x = 0; x < window_width; x++) {
+			draw_pixel(col, x, y);
+		}
+		
+		a += a_inc;
+		r += r_inc;
+		g += g_inc;
+		b += b_inc;
+		col = ((uint32_t)a << 24) + ((uint32_t)r << 16) + ((uint32_t)g << 8) + (uint32_t)b;
 	}
 }
 

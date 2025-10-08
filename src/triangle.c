@@ -52,8 +52,7 @@ void merge_sort_split(Triangle *a, Triangle *b, int start, int end) {
 	merge_sort_merge(b, a, start, middle, end);
 }
 
-void merge_sort_triangles(Triangle *t, int len) {
-	Triangle *scratch = (Triangle *) malloc(sizeof(Triangle) * len);
+void merge_sort_triangles(Triangle *t, Triangle *scratch, int len) {
 	for(int i = 0; i < len; i++)
 		scratch[i] = t[i];
 	merge_sort_split(scratch, t, 0, len);
