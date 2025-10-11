@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <math.h>
 #include "platform.h"
 #include "vector.h"
+#include "matrix.h"
 #include "mesh.h"
 #include "triangle.h"
 #include "array.h"
@@ -17,6 +19,8 @@ static float F_ONE_THIRD = (1.0f / 3.0f);
 const float fov_factor = 840.0;
 vec3 camera_position = { 0., 0., -10.};
 vec3 camera_rotation = { 0., 0., 0. };
+
+mat4 projection_matrix;
 
 vec2 project(vec3 v3) {
     vec2 projected;
@@ -35,18 +39,44 @@ void setup() {
 	mesh.translation.z -= camera_position.z;
 	triangle_count = 0;
 	
-	flags = 0x00000000;
-	// flags = (flags | F_ROTATE);
-	flags = (flags | F_BACK_FACE_CULLING);
-	flags = (flags | F_FILL);
-	// flags = (flags | F_DRAW_VERTICES);
-	flags = (flags | F_DRAW_LINES);
-	flags = (flags | F_SORT_Z_DEPTH);
+
+	// default flags
+	{
+		flags = 0x00000000;
+		flags = (flags | F_ROTATE);
+		flags = (flags | F_BACK_FACE_CULLING);
+		flags = (flags | F_FILL);
+		flags = (flags | F_DRAW_LINES);
+		flags = (flags | F_SORT_Z_DEPTH);
+	}
+
+	float fov = M_PI / 3.0; // 60deg
+	float aspect_ratio = ((float)window_height / (float)window_width);
+	float znear = 5.0;
+	float zfar = 80.0;
+
+
+	projection_matrix = mat4_projection_matrix(
+		fov,
+		aspect_ratio,
+		znear,
+		zfar
+	);
 }
 
 void camera_update() {
 	if(controller & C_LEFT) {
 		camera_position.x -= 0.05;
+		float fov = M_PI / 3.0; // 60deg
+		float aspect_ratio = ((float)window_height / (float)window_width);
+		float znear = 5.0;
+		float zfar = 80.0;
+		projection_matrix = mat4_projection_matrix(
+			fov,
+			aspect_ratio,
+			znear,
+			zfar
+		);
 	}
 	if(controller & C_RIGHT) {
 		camera_position.x += 0.05;
@@ -134,21 +164,25 @@ void update() {
 		
 		
 		int should_render_face = (dot_prod > 0.0);
-		for(int i = 0; i < 3; i++) {
-			if(transformed_face_vertices[i].z <= (camera_position.z + 5.0)) {
-				should_render_face = 0;
-			}
-		}
+		// for(int i = 0; i < 3; i++) {
+		// 	if(transformed_face_vertices[i].z <= (camera_position.z + 5.0)) {
+		// 		should_render_face = 0;
+		// 	}
+		// }
 		// if we should render the current face, project face vertices
 		// into a triangle to be rendered
 		if(should_render_face) {
 			Triangle triangle;
 			triangle.avg_depth = 0.0;
 			for(int j = 0; j < 3; j++) {
-				vec2 projected_point = project(transformed_face_vertices[j]);
+				vec4 projected_point = mat4_project_and_normalise(vec4_from_vec3(transformed_face_vertices[j]), projection_matrix);
+				// vec2 projected_point = project(transformed_face_vertices[j]);
+				projected_point.x *= (window_width / 2.0);
+				projected_point.y *= (window_height / 2.0);
+
 				projected_point.x = (window_width / 2.0) + projected_point.x;
 				projected_point.y = (window_height / 2.0) + projected_point.y;
-				triangle.points[j] = projected_point;
+				triangle.points[j] = (vec2) { .x = projected_point.x, .y = projected_point.y };
 				
 				triangle.avg_depth += transformed_face_vertices[j].z * F_ONE_THIRD;
 			}
@@ -158,7 +192,7 @@ void update() {
 }
 
 void render() {
-	draw_gradient(0xFF0055FF, 0xFFFFFFFF);
+	draw_gradient(0xFF0066FF, 0xFFFFFFFF);
 
 	if(flags & F_SORT_Z_DEPTH) {
 		merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);
