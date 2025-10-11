@@ -114,6 +114,16 @@ vec3 vec3_invert(vec3 v) {
     return a;
 }
 
+vec3 vec3_normalise(vec3 v) {
+	float mag = vec3_mag(v);
+	float m = (1.0 / mag);
+	vec3 normed;
+	normed.x = v.x * m;
+	normed.y = v.y * m;
+	normed.z = v.z * m;
+	return normed;
+}
+
 vec3 vec3_rotate_x(vec3 v, float angle){
     vec3 rotated = {
         .x = v.x,
