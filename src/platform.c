@@ -278,16 +278,12 @@ void textured_triangle(
 	
 
 	// flat bottom triangle
+	int delta_y = (y1 - y0);
 	int delta_x1 = (x1 - x0);
-	int delta_y1 = (y1 - y0);
-	int delta_x2 = (x2 - x0);
-	int delta_y2 = (y2 - y0);
+	int delta_x2 = (Mx - x0);
 	
-	assert(delta_y1 >= 0);
-	assert(delta_y2 >= 0);
-
-	float inv_slope_1 = (delta_y1 == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y1);
-	float inv_slope_2 = (delta_y2 == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y2);
+	float inv_slope_1 = (delta_y == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y);
+	float inv_slope_2 = (delta_y == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y);
 	
 	float x_start = (float)x0 + inv_slope_1;
 	float x_end = (float)x0 + inv_slope_2;
@@ -313,13 +309,12 @@ void textured_triangle(
 	}
 
 	// flat top triangle
-	delta_x1 = (x2 - x0);
-	delta_y1 = (y2 - y0);
-	delta_x2 = (x2 - x1);
-	delta_y2 = (y2 - y1);
+	delta_y = (y2 - y1);
+	delta_x1 = (x2 - x1);
+	delta_x2 = (x2 - Mx);
 
-	inv_slope_1 = (delta_y1 == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y1);
-	inv_slope_2 = (delta_y2 == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y2);
+	inv_slope_1 = (delta_y == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y);
+	inv_slope_2 = (delta_y == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y);
 
 	x_start = (float)x2 - inv_slope_1;
 	x_end = (float)x2 - inv_slope_2;
