@@ -23,6 +23,7 @@ extern uint32_t flags;
 #define F_DRAW_LINES		(0x00000001 << 3)
 #define F_FILL 				(0x00000001 << 4)
 #define F_SORT_Z_DEPTH 		(0x00000001 << 5)
+#define F_DRAW_TEXTURE 		(0x00000001 << 6)
 
 // Variables
 extern SDL_Window *window;
@@ -49,6 +50,7 @@ void draw_rect(uint32_t value, int top, int left, int width, int height);
 void draw_line(uint32_t value, int x0, int y0, int x1, int y1);
 void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
 void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
+void textured_triangle(int x0, int y0, float u0, float v0, int x1, int y1, float u1, float v1, int x2, int y2, float u2, float v2, uint32_t *texture);
 void draw_pixel(uint32_t value, int x, int y);
 void render_color_buffer();
 void render_present();

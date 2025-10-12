@@ -1,4 +1,5 @@
 #include "platform.h"
+#include <assert.h>
 uint32_t flags = 0;
 uint32_t controller = 0;
 
@@ -11,6 +12,18 @@ int window_width;
 int window_height;
 
 int running;
+
+void swap_int(int *a, int *b) {
+	int temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+void swap_float(float *a, float *b) {
+	float temp = *a;
+	*a = *b;
+	*b = temp;
+}
 
 int init_window(int man_width, int man_height, int fullscreen) {
 
@@ -151,6 +164,9 @@ void process_events() {
 				else if(event.key.keysym.sym == SDLK_z) {
 					flags = flag_toggle(flags, F_SORT_Z_DEPTH);
 				}
+				else if(event.key.keysym.sym == SDLK_t) {
+					flags = flag_toggle(flags, F_DRAW_TEXTURE);
+				}
 
 				// controller stuff
 				else if(event.key.keysym.sym == SDLK_a) {
@@ -226,14 +242,115 @@ void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 	draw_line(value, x2, y2, x0, y0);
 }
 
+void textured_triangle(
+	int x0, int y0, float u0, float v0,
+	int x1, int y1, float u1, float v1,
+	int x2, int y2, float u2, float v2,
+	uint32_t *texture
+	
+) {
+	// sort triangle points in order of y
+	// y0 < y1 < y2
+	if(y1 > y2) { 
+		swap_int(&x1, &x2);
+		swap_int(&y1, &y2);
+		swap_float(&u1, &u2);
+		swap_float(&v1, &v2);
+	}
+
+	if(y0 > y1) {
+		swap_int(&x0, &x1);
+		swap_int(&y0, &y1);
+		swap_float(&u0, &u1);
+		swap_float(&v0, &v1);
+	}
+	
+	if(y1 > y2) {
+		swap_int(&x1, &x2);
+		swap_int(&y1, &y2);
+		swap_float(&u1, &u2);
+		swap_float(&v1, &v2);
+	}
+	
+	// get (Mx, My), intersection of triangle midpoint line
+	int My = y1;
+	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+	
+
+	// flat bottom triangle
+	int delta_x1 = (x1 - x0);
+	int delta_y1 = (y1 - y0);
+	int delta_x2 = (x2 - x0);
+	int delta_y2 = (y2 - y0);
+	
+	assert(delta_y1 >= 0);
+	assert(delta_y2 >= 0);
+
+	float inv_slope_1 = (delta_y1 == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y1);
+	float inv_slope_2 = (delta_y2 == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y2);
+	
+	float x_start = (float)x0 + inv_slope_1;
+	float x_end = (float)x0 + inv_slope_2;
+
+	if(x_start > x_end) {
+		swap_float(&x_start, &x_end);
+		swap_float(&inv_slope_1, &inv_slope_2);
+	}
+
+	for(int y = y0 + 1; y <= y1; y++) {
+
+		for(int j = round(x_start); j <= round(x_end); j++)
+
+			if(j % 2 == 0) {
+				draw_pixel(0xFFFF0000, j, y);
+			} else {
+				draw_pixel(0xFF000000, j, y);
+			}
+
+		x_start += inv_slope_1;
+		x_end += inv_slope_2;
+
+	}
+
+	// flat top triangle
+	delta_x1 = (x2 - x0);
+	delta_y1 = (y2 - y0);
+	delta_x2 = (x2 - x1);
+	delta_y2 = (y2 - y1);
+
+	inv_slope_1 = (delta_y1 == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y1);
+	inv_slope_2 = (delta_y2 == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y2);
+
+	x_start = (float)x2 - inv_slope_1;
+	x_end = (float)x2 - inv_slope_2;
+
+	if(x_start > x_end) {
+		swap_float(&x_start, &x_end);
+		swap_float(&inv_slope_1, &inv_slope_2);
+	}
+	
+	for(int y = y2 - 1; y >= y1; --y) {
+		for(int j = round(x_start); j <= round(x_end); j++)
+			if(j % 2 == 0) {
+				draw_pixel(0xFFFF0000, j, y);
+			} else {
+				draw_pixel(0xFFFFFFFF, j, y);
+			}
+
+		x_start -= inv_slope_1;
+		x_end -= inv_slope_2;
+
+	}
+}
+
 void draw_flat_bottom_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2) {
 	int delta_x1 = (x1 - x0);
 	int delta_y1 = (y1 - y0);
 	int delta_x2 = (x2 - x0);
 	int delta_y2 = (y2 - y0);
 
-	float x_1_inc = (delta_x1 == 0) ? 0.0 : (1.0 / ((float) delta_y1 / (float) delta_x1));
-	float x_2_inc = (delta_x2 == 0) ? 0.0 : (1.0 / ((float) delta_y2 / (float) delta_x2));
+	float x_1_inc = (delta_y1 == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y1);
+	float x_2_inc = (delta_y2 == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y2);
 	
 	float x_start = x0;
 	float x_end = x0;
@@ -259,8 +376,8 @@ void draw_flat_top_triangle(uint32_t value, int x0, int y0, int x1, int y1, int 
 	int delta_x2 = (x2 - x1);
 	int delta_y2 = (y2 - y1);
 
-	float x_1_inc = (delta_x1 == 0) ? 0.0 : (1.0 / ((float) delta_y1 / (float) delta_x1));
-	float x_2_inc = (delta_x2 == 0) ? 0.0 : (1.0 / ((float) delta_y2 / (float) delta_x2));
+	float x_1_inc = (delta_y1 == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y1);
+	float x_2_inc = (delta_y2 == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y2);
 
 	float x_start = x2;
 	float x_end = x2;
@@ -282,33 +399,21 @@ void draw_flat_top_triangle(uint32_t value, int x0, int y0, int x1, int y1, int 
 void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2) {
 	// sort triangle points in order of y
 	// y0 < y1 < y2
-	if(y1 > y2) {
-		int temp_x = x1;
-		int temp_y = y1;
-		x1 = x2;
-		y1 = y2;
-		x2 = temp_x;
-		y2 = temp_y;
+	if(y1 > y2) { 
+		swap_int(&x1, &x2);
+		swap_int(&y1, &y2);
 	}
 
 	if(y0 > y1) {
-		int temp_x = x0;
-		int temp_y = y0;
-		x0 = x1;
-		y0 = y1;
-		x1 = temp_x;
-		y1 = temp_y;
+		swap_int(&x0, &x1);
+		swap_int(&y0, &y1);
 	}
 	
 	if(y1 > y2) {
-		int temp_x = x1;
-		int temp_y = y1;
-		x1 = x2;
-		y1 = y2;
-		x2 = temp_x;
-		y2 = temp_y;
+		swap_int(&x1, &x2);
+		swap_int(&y1, &y2);
 	}
-
+	
 	// get (Mx, My), intersection of triangle midpoint line
 	int My = y1;
 	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;

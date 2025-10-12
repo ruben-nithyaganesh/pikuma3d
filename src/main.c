@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
+
 #include "platform.h"
 #include "vector.h"
 #include "matrix.h"
@@ -11,17 +12,16 @@
 
 #define WIDTH 1280
 #define HEIGHT 720
-// #define WIDTH 500
-// #define HEIGHT 500
 #define FPS 60
 
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., -10.};
+vec3 camera_position = { 0., 0., -1.};
 vec3 camera_rotation = { 0., 0., 0. };
 
 Lighting lighting;
+Texture texture;
 mat4 projection_matrix;
 
 vec2 project(vec3 v3) {
@@ -33,8 +33,10 @@ vec2 project(vec3 v3) {
 
 void setup() {
 
-	// load_cube_mesh_data();
-	load_obj_file("assets/teddy.obj", &mesh);
+	load_cube_mesh_data();
+	// load_obj_file("assets/teddy.obj", &mesh);
+
+	set_redbrick_texture(&texture);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 		
@@ -66,24 +68,14 @@ void setup() {
 	
 	vec3 lighting_dir;
 	lighting_dir.x = 1.0;
-	lighting_dir.y = -1.0;
+	lighting_dir.y = 1.0;
 	lighting_dir.z = 1.0;
 	lighting.global_illumination_direction = vec3_normalise(lighting_dir);
 }
 
 void camera_update() {
 	if(controller & C_LEFT) {
-		camera_position.x -= 0.05;
-		float fov = M_PI / 2.0; // 60deg
-		float aspect_ratio = ((float)window_height / (float)window_width);
-		float znear = 5.0;
-		float zfar = 80.0;
-		projection_matrix = mat4_projection_matrix(
-			fov,
-			aspect_ratio,
-			znear,
-			zfar
-		);
+
 	}
 	if(controller & C_RIGHT) {
 		camera_position.x += 0.05;
@@ -107,7 +99,7 @@ void update() {
 
 	if(flags & F_ROTATE) {
 		mesh.rotation.y += 0.008;
-		//mesh.rotation.z += 0.008;
+		mesh.rotation.z += 0.008;
 	}
 
 	triangle_count = 0;
@@ -190,6 +182,9 @@ void update() {
 			uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
 			
 			triangle.col = tri_color;
+			triangle.tex_coords[0] = (tex2d) { .u = face.a_uv.u, .v = face.a_uv.v};
+			triangle.tex_coords[1] = (tex2d) { .u = face.b_uv.u, .v = face.b_uv.v};
+			triangle.tex_coords[2] = (tex2d) { .u = face.c_uv.u, .v = face.c_uv.v};
 			triangles_to_render[triangle_count++] = triangle;
 		}
 	}
@@ -204,8 +199,15 @@ void render() {
 
 	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
-
-		if(flags & F_FILL) {
+		
+		if(flags & F_DRAW_TEXTURE) {
+			textured_triangle(
+				triangle.points[0].x, triangle.points[0].y, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
+				triangle.points[1].x, triangle.points[1].y, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
+				triangle.points[2].x, triangle.points[2].y, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
+				texture.data
+			);
+		} else if(flags & F_FILL) {
 			fill_triangle(
 				triangle.col,
 				triangle.points[0].x, triangle.points[0].y,

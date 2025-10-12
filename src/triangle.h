@@ -3,13 +3,16 @@
 
 #include <stdlib.h>
 #include "vector.h"
+#include "texture.h"
 
 typedef struct {
     int a, b, c;
+	tex2d a_uv, b_uv, c_uv;
 } Face;
 
 typedef struct {
     vec2 points[3];
+	tex2d tex_coords[3];
 	uint32_t col;
 	float avg_depth;
 } Triangle;
