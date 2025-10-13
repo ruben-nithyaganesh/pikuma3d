@@ -3,10 +3,10 @@
 
 // vec2
 typedef struct {
-    float x, y, z;
+    float x, y;
 } vec2;
 
-extern float vec2_mag_squared(vec2 v);
+float vec2_mag_squared(vec2 v);
 float vec2_mag(vec2 v);
 vec2 vec2_mul(vec2 v, double s);
 vec2 vec2_div(vec2 v, double s);
@@ -20,7 +20,7 @@ typedef struct {
     float x, y, z;
 } vec3;
 
-extern float vec3_mag_squared(vec3 v);
+float vec3_mag_squared(vec3 v);
 float vec3_mag(vec3 v);
 vec3 vec3_mul(vec3 v, double s);
 vec3 vec3_div(vec3 v, double s);

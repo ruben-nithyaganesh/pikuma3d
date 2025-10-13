@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
+#include "vector.h"
+#include "texture.h"
 
 #define m_min(a, b) ((a <= b) ? a : b)
 
@@ -50,8 +52,9 @@ void draw_rect(uint32_t value, int top, int left, int width, int height);
 void draw_line(uint32_t value, int x0, int y0, int x1, int y1);
 void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
 void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
-void textured_triangle(int x0, int y0, float u0, float v0, int x1, int y1, float u1, float v1, int x2, int y2, float u2, float v2, uint32_t *texture);
+void textured_triangle(int x0, int y0, float u0, float v0, int x1, int y1, float u1, float v1, int x2, int y2, float u2, float v2, Texture texture);
 void draw_pixel(uint32_t value, int x, int y);
+void draw_texel(int x, int y, vec2 a, vec2 b, vec2 c, float u0, float v0, float u1, float v1, float u2, float v2, Texture texture);
 void render_color_buffer();
 void render_present();
 void render_clear();

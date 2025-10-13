@@ -205,7 +205,7 @@ void render() {
 				triangle.points[0].x, triangle.points[0].y, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
 				triangle.points[1].x, triangle.points[1].y, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
 				triangle.points[2].x, triangle.points[2].y, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
-				texture.data
+				texture
 			);
 		} else if(flags & F_FILL) {
 			fill_triangle(

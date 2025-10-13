@@ -1,5 +1,4 @@
 #include "platform.h"
-#include <assert.h>
 uint32_t flags = 0;
 uint32_t controller = 0;
 
@@ -242,12 +241,57 @@ void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 	draw_line(value, x2, y2, x0, y0);
 }
 
+vec3 barycentric_weights(vec2 a, vec2 b, vec2 c, vec2 p) {
+	vec2 ac = vec2_sub(c, a);
+	vec2 ab = vec2_sub(b, a);
+	vec2 ap = vec2_sub(p, a);
+	vec2 pb = vec2_sub(b, p);
+	vec2 pc = vec2_sub(c, p);
+
+	float parallelogram_area = (ac.x * ab.y - ac.y * ab.x);
+
+	float alpha = (pc.x * pb.y - pc.y * pb.x) / parallelogram_area;
+
+	float beta = (ac.x * ap.y - ac.y * ap.x) / parallelogram_area;
+
+	float gamma = 1.0 - alpha - beta;
+
+	vec3 res;
+	res.x = alpha;
+	res.y = beta;
+	res.z = gamma;
+
+	return res;
+}
+
+void draw_texel(
+	int x, int y,
+	vec2 a, vec2 b, vec2 c,
+	float u0, float v0, float u1, float v1, float u2, float v2,
+	Texture texture
+) {
+	vec2 p = { x, y };
+	vec3 weights = barycentric_weights(a, b, c, p);
+
+	float alpha = weights.x;
+	float beta = weights.y;
+	float gamma = weights.z;
+
+	float interpolated_x = u0 * alpha + u1 * beta + u2 * gamma;
+	float interpolated_y = v0 * alpha + v1 * beta + v2 * gamma;
+
+	int tex_x = (int)(texture.width * interpolated_x);
+	int tex_y = (int)(texture.height * interpolated_y);
+
+	uint32_t col = texture.data[tex_y * texture.width + tex_x];
+	draw_pixel(col, x, y);
+}
+
 void textured_triangle(
 	int x0, int y0, float u0, float v0,
 	int x1, int y1, float u1, float v1,
 	int x2, int y2, float u2, float v2,
-	uint32_t *texture
-	
+	Texture texture
 ) {
 	// sort triangle points in order of y
 	// y0 < y1 < y2
@@ -271,9 +315,12 @@ void textured_triangle(
 		swap_float(&u1, &u2);
 		swap_float(&v1, &v2);
 	}
+
+	vec2 point_a = { x0, y0 };
+	vec2 point_b = { x1, y1 };
+	vec2 point_c = { x2, y2 };
 	
-	// get (Mx, My), intersection of triangle midpoint line
-	int My = y1;
+	// get (Mx, y1), intersection of triangle midpoint line
 	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
 	
 
@@ -295,13 +342,21 @@ void textured_triangle(
 
 	for(int y = y0 + 1; y <= y1; y++) {
 
-		for(int j = round(x_start); j <= round(x_end); j++)
+		for(int x = round(x_start); x <= round(x_end); x++) {
+			
+			draw_texel(
+				x, y,
+				point_a, point_b, point_c,
+				u0, v0, u1, v1, u2, v2,
+				texture
+			);
 
-			if(j % 2 == 0) {
-				draw_pixel(0xFFFF0000, j, y);
-			} else {
-				draw_pixel(0xFF000000, j, y);
-			}
+			// if(x % 2 == 0) {
+			// 	draw_pixel(0xFFFF0000, x, y);
+			// } else {
+			// 	draw_pixel(0xFF000000, x, y);
+			// }
+		}
 
 		x_start += inv_slope_1;
 		x_end += inv_slope_2;
@@ -325,12 +380,14 @@ void textured_triangle(
 	}
 	
 	for(int y = y2 - 1; y >= y1; --y) {
-		for(int j = round(x_start); j <= round(x_end); j++)
-			if(j % 2 == 0) {
-				draw_pixel(0xFFFF0000, j, y);
-			} else {
-				draw_pixel(0xFFFFFFFF, j, y);
-			}
+		for(int x = round(x_start); x <= round(x_end); x++) {
+			draw_texel(
+				x, y,
+				point_a, point_b, point_c,
+				u0, v0, u1, v1, u2, v2,
+				texture
+			);
+		}
 
 		x_start -= inv_slope_1;
 		x_end -= inv_slope_2;

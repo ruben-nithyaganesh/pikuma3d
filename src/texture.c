@@ -5,16 +5,25 @@ void load_texture(unsigned char *filename, Texture *t) {
 	// FILE *file = fopen(filename, "r");
 }
 
+uint32_t uint8_to_uint32_col(uint8_t c8) {
+	uint8_t r = (c8 & 0b11100000) >> 5;
+	uint8_t g = (c8 & 0b00011100) >> 2;
+	uint8_t b = (c8 & 0b00000011);
+
+	uint32_t c32 = (
+		0xFF << 24 |
+		r << 16 |
+		g << 8 |
+		b
+	);
+
+	return c32;
+}
+
 void set_redbrick_texture(Texture *texture) {
 	texture->width = 64;
 	texture->height = 64;
-
-	int size = texture->width * texture->height;
-	texture->data = (uint32_t *) malloc(sizeof(uint32_t) * size);
-
-	for(int i = 0; i < size; i++) {
-		texture->data[i] = (uint32_t) REDBRICK_TEXTURE[i];
-	}
+	texture->data = (uint32_t *)REDBRICK_TEXTURE;
 }
 
 const uint8_t REDBRICK_TEXTURE[] = {
