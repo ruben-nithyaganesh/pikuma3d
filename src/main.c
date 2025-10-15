@@ -36,6 +36,8 @@ void setup() {
 	load_cube_mesh_data();
 	// load_obj_file("assets/teddy.obj", &mesh);
 
+	mesh.translation.z -= 0.2;
+
 	set_redbrick_texture(&texture);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
@@ -170,7 +172,7 @@ void update() {
 
 				projected_point.x = (window_width / 2.0) + projected_point.x;
 				projected_point.y = (window_height / 2.0) + projected_point.y;
-				triangle.points[j] = (vec2) { .x = projected_point.x, .y = projected_point.y };
+				triangle.points[j] = projected_point;
 				
 				triangle.avg_depth += transformed_face_vertices[j].z * (1.0 / 3.0);
 			}
@@ -202,9 +204,9 @@ void render() {
 		
 		if(flags & F_DRAW_TEXTURE) {
 			textured_triangle(
-				triangle.points[0].x, triangle.points[0].y, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
-				triangle.points[1].x, triangle.points[1].y, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
-				triangle.points[2].x, triangle.points[2].y, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
+				triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
+				triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
+				triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
 				texture
 			);
 		} else if(flags & F_FILL) {
@@ -225,7 +227,7 @@ void render() {
 
 		if(flags & F_DRAW_LINES) {
 			draw_triangle(
-				0xFF222222,
+				0xFFFFFFFF,
 				triangle.points[0].x, triangle.points[0].y,
 				triangle.points[1].x, triangle.points[1].y,
 				triangle.points[2].x, triangle.points[2].y

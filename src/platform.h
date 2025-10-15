@@ -52,9 +52,13 @@ void draw_rect(uint32_t value, int top, int left, int width, int height);
 void draw_line(uint32_t value, int x0, int y0, int x1, int y1);
 void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
 void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
-void textured_triangle(int x0, int y0, float u0, float v0, int x1, int y1, float u1, float v1, int x2, int y2, float u2, float v2, Texture texture);
+void textured_triangle(
+	int x0, int y0, float z0, float w0, float u0, float v0,
+	int x1, int y1, float z1, float w1, float u1, float v1,
+	int x2, int y2, float z2, float w2, float u2, float v2,
+	Texture texture);
 void draw_pixel(uint32_t value, int x, int y);
-void draw_texel(int x, int y, vec2 a, vec2 b, vec2 c, float u0, float v0, float u1, float v1, float u2, float v2, Texture texture);
+void draw_texel(int x, int y, vec4 a, vec4 b, vec4 c, float u0, float v0, float u1, float v1, float u2, float v2, Texture texture);
 void render_color_buffer();
 void render_present();
 void render_clear();

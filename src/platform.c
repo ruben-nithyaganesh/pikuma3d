@@ -48,12 +48,12 @@ int init_window(int man_width, int man_height, int fullscreen) {
 	}
 	
 	window = SDL_CreateWindow(
-		NULL,
+		"pikuma3D",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
 		width,
 		height,
-		SDL_WINDOW_BORDERLESS
+		0
 	);
 
 	if(!window) {
@@ -266,31 +266,45 @@ vec3 barycentric_weights(vec2 a, vec2 b, vec2 c, vec2 p) {
 
 void draw_texel(
 	int x, int y,
-	vec2 a, vec2 b, vec2 c,
+	vec4 a, vec4 b, vec4 c,
 	float u0, float v0, float u1, float v1, float u2, float v2,
 	Texture texture
 ) {
 	vec2 p = { x, y };
-	vec3 weights = barycentric_weights(a, b, c, p);
+	vec3 weights = barycentric_weights(
+		(vec2){ a.x, a.y },
+		(vec2){ b.x, b.y },
+		(vec2){ c.x, c.y },
+		p
+	);
 
 	float alpha = weights.x;
 	float beta = weights.y;
 	float gamma = weights.z;
 
-	float interpolated_x = u0 * alpha + u1 * beta + u2 * gamma;
-	float interpolated_y = v0 * alpha + v1 * beta + v2 * gamma;
+	float interpolated_u;
+	float interpolated_v;
+	float interpolated_reciprocal_w;
+	
+	interpolated_u = (u0 / a.w) * alpha + (u1 / b.w) * beta + (u2 / c.w) * gamma;
+	interpolated_v = (v0 / a.w) * alpha + (v1 / b.w) * beta + (v2 / c.w) * gamma;
 
-	int tex_x = (int)(texture.width * interpolated_x);
-	int tex_y = (int)(texture.height * interpolated_y);
+	interpolated_reciprocal_w = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
+
+	interpolated_u /= interpolated_reciprocal_w;
+	interpolated_v /= interpolated_reciprocal_w;
+
+	int tex_x = (int)(texture.width * interpolated_u);
+	int tex_y = (int)(texture.height * interpolated_v);
 
 	uint32_t col = texture.data[tex_y * texture.width + tex_x];
 	draw_pixel(col, x, y);
 }
 
 void textured_triangle(
-	int x0, int y0, float u0, float v0,
-	int x1, int y1, float u1, float v1,
-	int x2, int y2, float u2, float v2,
+	int x0, int y0, float z0, float w0, float u0, float v0,
+	int x1, int y1, float z1, float w1, float u1, float v1,
+	int x2, int y2, float z2, float w2, float u2, float v2,
 	Texture texture
 ) {
 	// sort triangle points in order of y
@@ -298,6 +312,8 @@ void textured_triangle(
 	if(y1 > y2) { 
 		swap_int(&x1, &x2);
 		swap_int(&y1, &y2);
+		swap_float(&z1, &z2);
+		swap_float(&w1, &w2);
 		swap_float(&u1, &u2);
 		swap_float(&v1, &v2);
 	}
@@ -305,6 +321,8 @@ void textured_triangle(
 	if(y0 > y1) {
 		swap_int(&x0, &x1);
 		swap_int(&y0, &y1);
+		swap_float(&z0, &z1);
+		swap_float(&w0, &w1);
 		swap_float(&u0, &u1);
 		swap_float(&v0, &v1);
 	}
@@ -312,13 +330,15 @@ void textured_triangle(
 	if(y1 > y2) {
 		swap_int(&x1, &x2);
 		swap_int(&y1, &y2);
+		swap_float(&z1, &z2);
+		swap_float(&w1, &w2);
 		swap_float(&u1, &u2);
 		swap_float(&v1, &v2);
 	}
 
-	vec2 point_a = { x0, y0 };
-	vec2 point_b = { x1, y1 };
-	vec2 point_c = { x2, y2 };
+	vec4 point_a = { x0, y0, z0, w0 };
+	vec4 point_b = { x1, y1, z1, w1 };
+	vec4 point_c = { x2, y2, z2, w2 };
 	
 	// get (Mx, y1), intersection of triangle midpoint line
 	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
