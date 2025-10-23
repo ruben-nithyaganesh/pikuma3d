@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "platform.h"
+#include "renderer.h"
 #include "vector.h"
 #include "matrix.h"
 #include "mesh.h"
@@ -237,8 +238,7 @@ void render() {
 		}
 	}
 
-	render_color_buffer();
-	render_present();
+	display_color_buffer();
 }
 
 int main() {

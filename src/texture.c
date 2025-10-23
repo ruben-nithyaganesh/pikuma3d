@@ -28,15 +28,13 @@ void load_texture_from_file(const char *filename, Texture *t) {
 					unsigned char *png_data = upng_get_buffer(upng);
 					unsigned char *texture_data = (unsigned char *) t->data;
 					for(int i = 0; i < width * height; i++) {
-						texture_data[0] = png_data[0];
+						texture_data[0] = png_data[3];
 						texture_data[1] = png_data[1];
 						texture_data[2] = png_data[2];
 						texture_data[3] = png_data[3];
 
 						texture_data += 4;
 						png_data += 4;
-
-						printf("%x\n", t->data[i]);
 					}
 
 

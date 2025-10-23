@@ -9,7 +9,6 @@
 
 #define m_min(a, b) ((a <= b) ? a : b)
 
-
 extern uint32_t controller;
 #define C_UP	 		(0x00000001)
 #define C_DOWN	  		(0x00000001 << 1)
@@ -27,43 +26,19 @@ extern uint32_t flags;
 #define F_SORT_Z_DEPTH 		(0x00000001 << 5)
 #define F_DRAW_TEXTURE 		(0x00000001 << 6)
 
-// Variables
-extern SDL_Window *window;
-extern SDL_Renderer *renderer;
 extern uint32_t *color_buffer;
-extern SDL_Texture *color_buffer_texture;
-
 extern int window_width;
 extern int window_height;
-
 extern int running;
 
-// Functions
-
-// window
-int init_window(int man_width, int man_height, int fullscreen);
+// required platform specific functions
+int init_window(int width, int height, int fullscreen);
 void process_events();
 void destroy_window();
-
-// rendering
-void draw_grid();
-void draw_gradient(uint32_t start, uint32_t end);
-void draw_rect(uint32_t value, int top, int left, int width, int height);
-void draw_line(uint32_t value, int x0, int y0, int x1, int y1);
-void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
-void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y2);
-void textured_triangle(
-	int x0, int y0, float z0, float w0, float u0, float v0,
-	int x1, int y1, float z1, float w1, float u1, float v1,
-	int x2, int y2, float z2, float w2, float u2, float v2,
-	Texture texture);
-void draw_pixel(uint32_t value, int x, int y);
-void draw_texel(int x, int y, vec4 a, vec4 b, vec4 c, float u0, float v0, float u1, float v1, float u2, float v2, Texture texture);
-void render_color_buffer();
-void render_present();
+void display_color_buffer();
 void render_clear();
 
-// time
+// platform specific time functions
 void wait_ticks_ms(int ms);
 int	get_ticks_ms();
 
