@@ -32,13 +32,15 @@ vec2 project(vec3 v3) {
 }
 
 void setup() {
-
+	
+	Texture png_texture;
+	load_texture_from_file("assets/greybrick.png", &texture);
 	load_cube_mesh_data();
 	// load_obj_file("assets/teddy.obj", &mesh);
 
 	mesh.translation.z -= 0.2;
 
-	set_redbrick_texture(&texture);
+	// set_redbrick_texture(&texture);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 		

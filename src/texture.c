@@ -1,8 +1,56 @@
 #include "texture.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include "upng.h"
 
-void load_texture(unsigned char *filename, Texture *t) {
-	// FILE *file = fopen(filename, "r");
+void load_texture_from_file(const char *filename, Texture *t) {
+	upng_t *upng;
+	upng = upng_new_from_file(filename);
+
+	if (upng != NULL) {
+		upng_decode(upng);
+		if (upng_get_error(upng) == UPNG_EOK) {
+			printf("Successfully loaded %s\n", filename);
+			
+			int width = upng_get_width(upng);
+			int height = upng_get_height(upng);
+			upng_format format = upng_get_format(upng);
+			
+			switch(format) {
+				case UPNG_RGBA8:
+				{
+				
+					t->width = width;
+					t->height = height;
+
+					t->data = (uint32_t *) malloc(width * height * sizeof(uint32_t));
+
+					unsigned char *png_data = upng_get_buffer(upng);
+					unsigned char *texture_data = (unsigned char *) t->data;
+					for(int i = 0; i < width * height; i++) {
+						texture_data[0] = png_data[0];
+						texture_data[1] = png_data[1];
+						texture_data[2] = png_data[2];
+						texture_data[3] = png_data[3];
+
+						texture_data += 4;
+						png_data += 4;
+
+						printf("%x\n", t->data[i]);
+					}
+
+
+				}break;
+
+				default:
+					printf("Unsupported png format");
+					exit(-1);
+
+			}
+		}
+
+		upng_free(upng);
+	}
 }
 
 uint32_t uint8_to_uint32_col(uint8_t c8) {

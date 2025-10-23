@@ -16,7 +16,7 @@ typedef struct {
 	uint32_t *data;
 } Texture;
 
-void load_texture(unsigned char *filename, Texture *t);
+void load_texture_from_file(const char *filename, Texture *t);
 void set_redbrick_texture(Texture *t);
 
 #endif
