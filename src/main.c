@@ -35,7 +35,7 @@ vec2 project(vec3 v3) {
 void setup() {
 	
 	Texture png_texture;
-	load_texture_from_file("assets/greybrick.png", &texture);
+	load_texture_from_file("assets/tnt.png", &texture);
 	load_cube_mesh_data();
 	// load_obj_file("assets/teddy.obj", &mesh);
 
@@ -55,6 +55,7 @@ void setup() {
 		flags = (flags | F_ROTATE);
 		flags = (flags | F_BACK_FACE_CULLING);
 		flags = (flags | F_FILL);
+		flags = (flags | F_DRAW_TEXTURE);
 		flags = (flags | F_SORT_Z_DEPTH);
 	}
 

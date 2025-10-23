@@ -36,7 +36,6 @@ int init_window(int width, int height, int fullscreen);
 void process_events();
 void destroy_window();
 void display_color_buffer();
-void render_clear();
 
 // platform specific time functions
 void wait_ticks_ms(int ms);
