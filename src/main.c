@@ -2,6 +2,7 @@
 #include <math.h>
 #include <assert.h>
 
+#include "main.h"
 #include "platform.h"
 #include "renderer.h"
 #include "vector.h"
@@ -18,7 +19,7 @@
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., -1.};
+vec3 camera_position = { 0., 0., -10.};
 vec3 camera_rotation = { 0., 0., 0. };
 
 Lighting lighting;
@@ -35,9 +36,9 @@ vec2 project(vec3 v3) {
 void setup() {
 	
 	Texture png_texture;
-	load_texture_from_file("assets/tnt.png", &texture);
-	load_cube_mesh_data();
-	// load_obj_file("assets/teddy.obj", &mesh);
+	// load_texture_from_file("assets/tnt.png", &texture);
+	// load_cube_mesh_data();
+	load_obj_file("assets/teddy.obj", &mesh);
 
 	mesh.translation.z -= 0.2;
 
@@ -55,7 +56,7 @@ void setup() {
 		flags = (flags | F_ROTATE);
 		flags = (flags | F_BACK_FACE_CULLING);
 		flags = (flags | F_FILL);
-		flags = (flags | F_DRAW_TEXTURE);
+		// flags = (flags | F_DRAW_TEXTURE);
 		flags = (flags | F_SORT_Z_DEPTH);
 	}
 
@@ -242,7 +243,7 @@ void render() {
 	display_color_buffer();
 }
 
-int main() {
+int renderer_main() {
 
 	init_window(WIDTH, HEIGHT, 1);
 

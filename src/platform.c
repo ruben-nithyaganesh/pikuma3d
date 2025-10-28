@@ -1,4 +1,5 @@
 #include "platform.h"
+#include "main.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -218,3 +219,8 @@ void destroy_window() {
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 }
+
+int main() {
+	renderer_main();
+}
+
