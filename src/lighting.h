@@ -2,6 +2,7 @@
 #define LIGHTING
 
 #include <stdlib.h>
+#include <stdint.h>
 #include "vector.h"
 
 typedef struct {

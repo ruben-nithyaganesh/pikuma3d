@@ -2,6 +2,7 @@
 #define TEXTURE
 
 #include <stdlib.h>
+#include <stdint.h>
 
 extern const uint8_t REDBRICK_TEXTURE[];
 

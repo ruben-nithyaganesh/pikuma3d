@@ -308,7 +308,10 @@ void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 	
 	// get (Mx, My), intersection of triangle midpoint line
 	int My = y1;
-	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+	int Mx = x0;
+	if (y2 != y0) {
+		Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+	}
 
 	draw_flat_bottom_triangle(value, x0, y0, x1, y1, Mx, My);
 	draw_flat_top_triangle(value, x1, y1, Mx, My, x2, y2);

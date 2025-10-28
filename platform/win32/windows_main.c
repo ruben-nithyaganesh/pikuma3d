@@ -6,16 +6,13 @@
 #include <assert.h>
 
 #define WIN_APP_BANNER_HEIGHT 32
-
-static char running;
 RECT window_rect;
 static WindowBuffer window_buffer;
 static WindowDimension window_dim;
 static Rect rect_state;
 
 
-void win32DisplayBuffer(HDC handle_device_context, WindowBuffer *b)
-{
+void win32DisplayBuffer(HDC handle_device_context, WindowBuffer *b) {
 	StretchDIBits(
 			handle_device_context,
 			0, //xDest
@@ -33,8 +30,7 @@ void win32DisplayBuffer(HDC handle_device_context, WindowBuffer *b)
 		);
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 	LRESULT result = 0;
 
@@ -102,8 +98,7 @@ void win32ProcessMessages(HWND hwnd)
 	//do the msg loop
 	MSG msg;
 	memset(&msg, 0, sizeof(MSG));
-	while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE) > 0)
-	{
+	while(PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE) > 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -120,8 +115,7 @@ inline long getTicks()
 }
 
 
-void windowResized(HWND hwnd)
-{
+void windowResized(HWND hwnd) {
 	GetWindowRect(hwnd, &window_rect);
 	int w_width = window_rect.right - window_rect.left;
 	int w_height = window_rect.bottom - window_rect.top;

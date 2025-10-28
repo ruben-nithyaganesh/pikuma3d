@@ -12,6 +12,10 @@
 #include "lighting.h"
 #include "array.h"
 
+#ifndef M_PI
+double M_PI = 3.14159265358979323846;
+#endif
+
 #define WIDTH 1280
 #define HEIGHT 720
 #define FPS 60
@@ -240,21 +244,27 @@ void render() {
 		}
 	}
 
+	for(int i = 0; i < 200; i++) {
+		for(int j = 0; j < 200; j++) {
+			draw_pixel(0xFF00FFFF, 100 + i, 100 + j);
+		}
+	}
 	display_color_buffer();
 }
 
 int renderer_main() {
 
-	init_window(WIDTH, HEIGHT, 1);
+	init_window(WIDTH, HEIGHT, 0);
 
 	setup();
 
-    int last_ms = get_ticks_ms();
+	int last_ms = get_ticks_ms();
 	
-    while(running == 1) {
+	while(running) {
 		process_events();
 		update();
 		render();
+
 
 		// enforce fixed frame rate
 		int time_to_wait = MS_PER_FRAME - (get_ticks_ms() - last_ms);
@@ -262,7 +272,9 @@ int renderer_main() {
 			wait_ticks_ms(time_to_wait);
 		}
 		last_ms = get_ticks_ms();
-    }
+  }
 
 	destroy_window();
+
+	return 0;
 }
