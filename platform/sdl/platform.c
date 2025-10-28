@@ -1,5 +1,5 @@
-#include "platform.h"
-#include "main.h"
+#include "../../src/platform.h"
+#include "../../src/main.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
