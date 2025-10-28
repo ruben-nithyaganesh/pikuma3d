@@ -106,7 +106,7 @@ void resizeBuffer(WindowBuffer *wb, int width, int height) {
 	wb->bytes_per_pixel = 4;
 	wb->bitmap_info.bmiHeader.biSize = sizeof(wb->bitmap_info.bmiHeader);
 	wb->bitmap_info.bmiHeader.biWidth	= wb->width;
-	wb->bitmap_info.bmiHeader.biHeight = wb->height; // TODO: is this right?
+	wb->bitmap_info.bmiHeader.biHeight = -wb->height; // TODO: is this right?
 	wb->bitmap_info.bmiHeader.biPlanes = 1;
 	wb->bitmap_info.bmiHeader.biBitCount = 32;
 	wb->bitmap_info.bmiHeader.biCompression = BI_RGB;

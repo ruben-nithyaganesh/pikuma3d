@@ -162,8 +162,10 @@ void textured_triangle(
 	vec4 point_c = { x2, y2, z2, w2 };
 	
 	// get (Mx, y1), intersection of triangle midpoint line
-	int Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
-	
+	int Mx = x0;
+	if (y2 != y0) {
+		Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+	}
 
 	// flat bottom triangle
 	int delta_y = (y1 - y0);

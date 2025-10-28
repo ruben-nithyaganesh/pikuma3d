@@ -244,11 +244,6 @@ void render() {
 		}
 	}
 
-	for(int i = 0; i < 200; i++) {
-		for(int j = 0; j < 200; j++) {
-			draw_pixel(0xFF00FFFF, 100 + i, 100 + j);
-		}
-	}
 	display_color_buffer();
 }
 
@@ -264,7 +259,6 @@ int renderer_main() {
 		process_events();
 		update();
 		render();
-
 
 		// enforce fixed frame rate
 		int time_to_wait = MS_PER_FRAME - (get_ticks_ms() - last_ms);
