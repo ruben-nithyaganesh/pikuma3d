@@ -1,3 +1,4 @@
+#include <SDL2/SDL.h>
 #include "../../src/platform.h"
 #include "../../src/main.h"
 

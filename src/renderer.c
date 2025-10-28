@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include <math.h>
 
 
 void swap_int(int *a, int *b) {
