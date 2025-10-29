@@ -1,6 +1,6 @@
 .vscode/*
 .vs/*
-build/*
+*.exe
 *swp*
 *~
 *.pdb

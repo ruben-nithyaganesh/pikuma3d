@@ -248,13 +248,10 @@ void render() {
 }
 
 int renderer_main() {
-
 	init_window(WIDTH, HEIGHT, 0);
-
 	setup();
 
 	int last_ms = get_ticks_ms();
-	
 	while(running) {
 		process_events();
 		update();
@@ -269,6 +266,5 @@ int renderer_main() {
   }
 
 	destroy_window();
-
 	return 0;
 }
