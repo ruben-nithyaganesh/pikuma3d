@@ -121,20 +121,19 @@ void resizeBuffer(WindowBuffer *wb, int width, int height) {
 
 // required platform specific functions
 int init_window(int width, int height, int fullscreen) {
-	// Lets create a window
+
 	hwnd = CreateWindowEx(
-		0, //optional window styles
-		wc.lpszClassName, //class name
-		"pikuma3d", //window name
-		WS_OVERLAPPEDWINDOW, //dwStyle
-		
-		//default size and position
+		0,
+		wc.lpszClassName,
+		"pikuma3d",
+		WS_OVERLAPPEDWINDOW,
+
 		CW_USEDEFAULT, CW_USEDEFAULT, width, height,
 
-		NULL, //parent window
-		NULL, //menu
-		wc.hInstance, //Instance handle
-		NULL //additional data
+		NULL,
+		NULL,
+		wc.hInstance,
+		NULL
 	);
 
 	if(!hwnd) {
