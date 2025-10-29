@@ -1,24 +1,7 @@
 #include "renderer.h"
+#include "util.h"
 #include <math.h>
 
-
-void swap_int(int *a, int *b) {
-	int temp = *a;
-	*a = *b;
-	*b = temp;
-}
-
-void swap_float(float *a, float *b) {
-	float temp = *a;
-	*a = *b;
-	*b = temp;
-}
-
-int bound(int x, int lower, int upper) {
-	if(x < lower) return 0;
-	if(x > upper) return upper;
-	return x;
-}
 
 void draw_pixel(uint32_t value, int x, int y) {
 	if(x >= 0 && x < window_width && y >= 0 && y < window_height) {

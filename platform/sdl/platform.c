@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include "../../src/platform.h"
 #include "../../src/main.h"
+#include "../../src/util.h"
 
 SDL_Window *window;
 SDL_Renderer *renderer;
@@ -85,24 +86,6 @@ int init_window(int man_width, int man_height, int fullscreen) {
 
 	running = 1;
 	return 1;
-}
-
-uint32_t flag_toggle(uint32_t flags, uint32_t f) {
-	if(flags & f) {
-		return flags & ~f;
-	}
-	else {
-		return flags | f;
-	}
-}
-
-uint32_t flag_set(uint32_t flags, uint32_t f, uint8_t on) {
-	if(on) {
-		return flags | f;
-	}
-	else {
-		return flags & ~f;
-	}
 }
 
 void process_events() {

@@ -1,5 +1,6 @@
 #include "../../src/platform.h"
 #include "../../src/main.h"
+#include "../../src/util.h"
 
 #include <windows.h>
 #include <winuser.h>
@@ -59,6 +60,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				else if(VKCode == 'A') {
 				}
 				else if(VKCode == 'S') {
+					flags = flag_toggle(flags, F_DRAW_LINES);
 				}
 				else if(VKCode == 'D') {
 				}

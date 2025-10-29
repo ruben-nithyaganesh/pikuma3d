@@ -39,7 +39,7 @@ vec2 project(vec3 v3) {
 
 void setup() {
 	
-	Texture png_texture;
+	// Texture png_texture;
 	// load_texture_from_file("assets/tnt.png", &texture);
 	// load_cube_mesh_data();
 	load_obj_file("assets/teddy.obj", &mesh);
@@ -57,7 +57,7 @@ void setup() {
 	// default flags
 	{
 		flags = 0x00000000;
-		flags = (flags | F_ROTATE);
+		// flags = (flags | F_ROTATE);
 		flags = (flags | F_BACK_FACE_CULLING);
 		flags = (flags | F_FILL);
 		// flags = (flags | F_DRAW_TEXTURE);
@@ -109,8 +109,8 @@ void update() {
 	camera_update();
 
 	if(flags & F_ROTATE) {
-		mesh.rotation.y += 0.008;
-		mesh.rotation.z += 0.008;
+		// mesh.rotation.y += 0.008;
+		// mesh.rotation.z += 0.008;
 	}
 
 	triangle_count = 0;
