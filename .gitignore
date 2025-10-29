@@ -1,6 +1,7 @@
 .vscode/*
 *.opendb
-*.vs/*
+.vs/*
+*vs/*
 *.exe
 *swp*
 *~
