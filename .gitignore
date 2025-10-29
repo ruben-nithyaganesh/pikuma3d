@@ -7,3 +7,5 @@
 *.ilk
 *.obj
 *.exe
+build/sdl/sdl_renderer
+sdl_renderer
