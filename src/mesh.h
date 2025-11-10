@@ -19,6 +19,8 @@ typedef struct {
     int vertices_count;
     int face_count;
     vec3 *vertices;
+    vec3 *normals;
+    tex2d *tex_uv;
     vec3 scale;
     vec3 translation;
     vec3 rotation;

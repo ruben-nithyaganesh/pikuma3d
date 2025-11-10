@@ -37,23 +37,23 @@ char skip_line(FILE *f) {
 	return next;
 }
 
-void load_cube_mesh_data() {
-    mesh.face_count = ARRAY_SIZE(cube_faces);
-    mesh.vertices_count = ARRAY_SIZE(cube_vertices);
-
-    mesh.vertices = (vec3 *) malloc(mesh.vertices_count * sizeof(mesh.vertices[0]));
-    mesh.faces = (Face *) malloc(mesh.face_count * sizeof(mesh.faces[0]));
-
-    for(int i = 0; i < mesh.vertices_count; i++) {
-        mesh.vertices[i] = cube_vertices[i];
-    }
-
-    for(int i = 0; i < mesh.face_count; i++) {
-        mesh.faces[i] = cube_faces[i];
-    }
-
-    mesh.rotation = (vec3) { .0, .0, .0 };
-}
+/// void load_cube_mesh_data() {
+///     mesh.face_count = ARRAY_SIZE(cube_faces);
+///     mesh.vertices_count = ARRAY_SIZE(cube_vertices);
+/// 
+///     mesh.vertices = (vec3 *) malloc(mesh.vertices_count * sizeof(mesh.vertices[0]));
+///     mesh.faces = (Face *) malloc(mesh.face_count * sizeof(mesh.faces[0]));
+/// 
+///     for(int i = 0; i < mesh.vertices_count; i++) {
+///         mesh.vertices[i] = cube_vertices[i];
+///     }
+/// 
+///     for(int i = 0; i < mesh.face_count; i++) {
+///         mesh.faces[i] = cube_faces[i];
+///     }
+/// 
+///     mesh.rotation = (vec3) { .0, .0, .0 };
+/// }
 
 void load_obj_file(char *filename, Mesh *mesh) {
 
@@ -64,36 +64,65 @@ void load_obj_file(char *filename, Mesh *mesh) {
 	}
 	
 	mesh->vertices = NULL;
+	mesh->normals = NULL;
+	mesh->tex_uv = NULL;
 	mesh->faces = NULL;
 	mesh->vertices_count = 0;
 	mesh->face_count = 0;
 
 	char type;
 	float vx, vy, vz;
+	float nx, ny, nz;
+	float u, v;
 	int f1, f2, f3;
+	int ft1, ft2, ft3;
+	int fn1, fn2, fn3;
 
 	while((type = getc(obj_file)) != EOF) {
 		if(type == 'v') {
-			fscanf(obj_file, " %f %f %f\n", &vx, &vy, &vz);
-			printf("%c %f %f %f\n", type, vx, vy, vz);
-			vec3 vertex;
-			vertex.x = vx;
-			vertex.y = - vy;
-			vertex.z = vz;
-			array_push(mesh->vertices, vertex);
-			mesh->vertices_count++;
+			char second_char = getc(obj_file);
+			if(second_char == 't') {
+				fscanf(obj_file, " %f %f\n", &u, &v);
+				tex2d tex;
+				tex.u = u;
+				tex.v = v;
+				array_push(mesh->tex_uv, tex);
+				printf("vt %f %f\n", u, v);
+			}
+			else if(second_char == 'n') {
+				fscanf(obj_file, "%f %f %f\n", &nx, &ny, &nz);
+				printf("vn %f %f %f\n", nx, ny, nz);
+				vec3 normal = { .x = nz, .y = ny, .z = nz };
+				array_push(mesh->normals, normal);
+			}
+			else if(second_char == ' ') {
+				fscanf(obj_file, "%f %f %f\n", &vx, &vy, &vz);
+				printf("%c %f %f %f\n", type, vx, vy, vz);
+				vec3 vertex = { .x = vx, .y = -vy, .z = vz };
+				array_push(mesh->vertices, vertex);
+				mesh->vertices_count++;
+			}
 		}
 		else if(type == 'f') {
-			fscanf(obj_file, " %d %d %d\n", &f1, &f2, &f3);
-			printf("%c %d %d %d\n", type, f1, f2, f3);
 			Face face;
-			face.a = f1;
-			face.b = f2;
-			face.c = f3;
+			// fscanf(obj_file, " %d %d %d\n", &f1, &f2, &f3);
+			fscanf(obj_file, " %d/%d/%d %d/%d/%d %d/%d/%d\n",\
+				&face.a, &face.a_uv, &face.a_n,
+				&face.b, &face.b_uv, &face.b_n,
+				&face.c, &face.c_uv, &face.c_n
+			);
+
+			printf("f %d/%d/%d %d/%d/%d %d/%d/%d\n",\
+				face.a, face.a_uv, face.a_n,
+				face.b, face.b_uv, face.b_n,
+				face.c, face.c_uv, face.c_n
+			);
+
 			array_push(mesh->faces, face);
 			mesh->face_count++;
 		}
-
+		else if(type == '\n') {
+		}
 		// skip the line if we don't recognise the first character
 		else {
 			skip_line(obj_file);

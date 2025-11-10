@@ -23,7 +23,7 @@ double M_PI = 3.14159265358979323846;
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., -10.};
+vec3 camera_position = { 0., 0., -1.};
 vec3 camera_rotation = { 0., 0., 0. };
 
 Lighting lighting;
@@ -40,9 +40,9 @@ vec2 project(vec3 v3) {
 void setup() {
 	
 	// Texture png_texture;
-	// load_texture_from_file("assets/tnt.png", &texture);
+	load_texture_from_file("assets/f22.png", &texture);
 	// load_cube_mesh_data();
-	load_obj_file("assets/teddy.obj", &mesh);
+	load_obj_file("assets/f22.obj", &mesh);
 
 	mesh.translation.z -= 0.2;
 
@@ -109,7 +109,7 @@ void update() {
 	camera_update();
 
 	if(flags & F_ROTATE) {
-		// mesh.rotation.y += 0.008;
+		mesh.rotation.y += 0.008;
 		// mesh.rotation.z += 0.008;
 	}
 
@@ -193,9 +193,9 @@ void update() {
 			uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
 			
 			triangle.col = tri_color;
-			triangle.tex_coords[0] = (tex2d) { .u = face.a_uv.u, .v = face.a_uv.v};
-			triangle.tex_coords[1] = (tex2d) { .u = face.b_uv.u, .v = face.b_uv.v};
-			triangle.tex_coords[2] = (tex2d) { .u = face.c_uv.u, .v = face.c_uv.v};
+			triangle.tex_coords[0] = mesh.tex_uv[face.a_uv - 1];
+			triangle.tex_coords[1] = mesh.tex_uv[face.b_uv - 1];
+			triangle.tex_coords[2] = mesh.tex_uv[face.c_uv - 1];
 			triangles_to_render[triangle_count++] = triangle;
 		}
 	}

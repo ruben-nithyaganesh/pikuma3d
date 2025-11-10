@@ -7,7 +7,8 @@
 
 typedef struct {
     int a, b, c;
-	tex2d a_uv, b_uv, c_uv;
+	int a_n, b_n, c_n;
+	int a_uv, b_uv, c_uv;
 } Face;
 
 typedef struct {
@@ -17,7 +18,7 @@ typedef struct {
 	float avg_depth;
 } Triangle;
 
-extern Face cube_faces[12];
+// extern Face cube_faces[12];
 
 void merge_sort_triangles(Triangle *t, Triangle *scratch, int len);
 
