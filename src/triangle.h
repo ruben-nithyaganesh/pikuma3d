@@ -15,6 +15,7 @@ typedef struct {
     vec4 points[3];
 	tex2d tex_coords[3];
 	uint32_t col;
+	float intensity;
 	float avg_depth;
 } Triangle;
 

@@ -2,6 +2,13 @@
 #include "util.h"
 #include <math.h>
 
+float *z_buffer;
+void init_renderer(int width, int height) {
+	z_buffer = (float *)malloc(width * height * sizeof(float));
+	for(int i = 0; i < width * height; i++) {
+		z_buffer[i] = 100000.0;
+	}
+}
 
 void draw_pixel(uint32_t value, int x, int y) {
 	if(x >= 0 && x < window_width && y >= 0 && y < window_height) {
@@ -68,11 +75,25 @@ vec3 barycentric_weights(vec2 a, vec2 b, vec2 c, vec2 p) {
 	return res;
 }
 
+uint32_t lerp_pixel(uint32_t c, float i) {
+	uint32_t lerped;
+	uint8_t r = (c & 0x00FF0000) >> 16;
+	uint8_t g = (c & 0x0000FF00) >> 8;
+	uint8_t b = (c & 0x000000FF);
+
+	u_int8_t lerped_r = (uint8_t)(r * i);
+	u_int8_t lerped_g = (uint8_t)(g * i);
+	u_int8_t lerped_b = (uint8_t)(b * i);
+
+	lerped = 0xFF000000 | (lerped_r << 16) | (lerped_g << 8) | (lerped_b);
+	return lerped;
+}
+
 void draw_texel(
 	int x, int y,
 	vec4 a, vec4 b, vec4 c,
 	float u0, float v0, float u1, float v1, float u2, float v2,
-	Texture texture
+	Texture texture, float intensity
 ) {
 	vec2 p = { x, y };
 	vec3 weights = barycentric_weights(
@@ -100,16 +121,20 @@ void draw_texel(
 
 	int tex_x = (int)(texture.width * interpolated_u);
 	int tex_y = (int)(texture.height * interpolated_v);
-
-	uint32_t col = texture.data[tex_y * texture.width + tex_x];
-	draw_pixel(col, x, y);
+	
+	if (z_buffer[window_width * y + x] >= interpolated_reciprocal_w) {
+		uint32_t col = texture.data[tex_y * texture.width + tex_x];
+		// col = lerp_pixel(col, intensity);
+		draw_pixel(col, x, y);
+		z_buffer[window_width * y + x] = interpolated_reciprocal_w;
+	}
 }
 
 void textured_triangle(
 	int x0, int y0, float z0, float w0, float u0, float v0,
 	int x1, int y1, float z1, float w1, float u1, float v1,
 	int x2, int y2, float z2, float w2, float u2, float v2,
-	Texture texture
+	Texture texture, float intensity
 ) {
 	// sort triangle points in order of y
 	// y0 < y1 < y2
@@ -174,7 +199,7 @@ void textured_triangle(
 				x, y,
 				point_a, point_b, point_c,
 				u0, v0, u1, v1, u2, v2,
-				texture
+				texture, intensity
 			);
 
 			// if(x % 2 == 0) {
@@ -211,7 +236,7 @@ void textured_triangle(
 				x, y,
 				point_a, point_b, point_c,
 				u0, v0, u1, v1, u2, v2,
-				texture
+				texture, intensity
 			);
 		}
 

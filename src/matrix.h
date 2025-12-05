@@ -38,5 +38,6 @@ mat4 mat4_rotation_matrix_z(float a);
 mat4 mat4_projection_matrix(float fov, float aspect, float znear, float zfar);
 
 vec4 mat4_project_and_normalise(vec4 v, mat4 proj);
+mat4 mat4_look_at(vec3 eye, vec3 target, vec3 up);
 vec4 mat4_mul_vec4(mat4 m, vec4 v);
 #endif

@@ -213,3 +213,18 @@ vec4 mat4_mul_vec4(mat4 m, vec4 v) {
 	res.w = v.x * m.e30 + v.y * m.e31 + v.z * m.e32 + v.w * m.e33;
 	return res;
 }
+
+mat4 mat4_look_at(vec3 eye, vec3 target, vec3 up) {
+
+	vec3 z = vec3_normalise(vec3_sub(target, eye));
+	vec3 x = vec3_normalise(vec3_cross_prod(up, z));
+	vec3 y = vec3_cross_prod(z, x);
+
+	mat4 view_matrix = {
+		x.x, x.y, x.z, -vec3_dot(x, eye),
+		y.x, y.y, y.z, -vec3_dot(y, eye),
+		z.x, z.y, z.z, -vec3_dot(z, eye)
+	};
+
+	return view_matrix;
+}

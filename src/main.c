@@ -20,11 +20,25 @@ double M_PI = 3.14159265358979323846;
 #define HEIGHT 720
 #define FPS 60
 
+enum {
+	FRUSTUM_TOP,
+	FRUSTUM_BOTTOM,
+	FRUSTUM_FRONT,
+	FRUSTUM_BACK,
+	FRUSTUM_LEFT,
+	FRUSTUM_RIGHT
+} Frustum_Sides; 
+
+typedef struct {
+	vec3 point;
+	vec3 normal;
+} Plane;
+
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., -1.};
-vec3 camera_rotation = { 0., 0., 0. };
+vec3 camera_position = { 0., 0., 1.};
+vec3 camera_target = { 0., 0., 0. };
 
 Lighting lighting;
 Texture texture;
@@ -39,35 +53,34 @@ vec2 project(vec3 v3) {
 
 void setup() {
 	
+	init_renderer(WIDTH, HEIGHT);
 	// Texture png_texture;
 	load_texture_from_file("assets/f22.png", &texture);
 	// load_cube_mesh_data();
 	load_obj_file("assets/f22.obj", &mesh);
 
-	mesh.translation.z -= 0.2;
 
 	// set_redbrick_texture(&texture);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 		
-	mesh.translation.z -= camera_position.z;
 	triangle_count = 0;
 	
 
 	// default flags
 	{
 		flags = 0x00000000;
-		// flags = (flags | F_ROTATE);
+		flags = (flags | F_ROTATE);
 		flags = (flags | F_BACK_FACE_CULLING);
-		flags = (flags | F_FILL);
-		// flags = (flags | F_DRAW_TEXTURE);
+		// flags = (flags | F_FILL);
+		flags = (flags | F_DRAW_TEXTURE);
 		flags = (flags | F_SORT_Z_DEPTH);
 	}
 
 	float fov = M_PI / 3.0; // 60deg
 	float aspect_ratio = ((float)window_height / (float)window_width);
 	float znear = 5.0;
-	float zfar = 80.0;
+	float zfar = 100.0;
 
 
 	projection_matrix = mat4_projection_matrix(
@@ -79,38 +92,46 @@ void setup() {
 	
 	vec3 lighting_dir;
 	lighting_dir.x = 1.0;
-	lighting_dir.y = 1.0;
+	lighting_dir.y = 0.0;
 	lighting_dir.z = 1.0;
 	lighting.global_illumination_direction = vec3_normalise(lighting_dir);
 }
 
 void camera_update() {
-	if(controller & C_LEFT) {
-
+	float camera_speed = 0.05;
+	if (controller & C_UP) {
+		printf("forward\n");
+		camera_position.z -= camera_speed;
+		camera_target.z -= camera_speed;
 	}
-	if(controller & C_RIGHT) {
-		camera_position.x += 0.05;
+	if (controller & C_DOWN) {
+		printf("back\n");
+		camera_position.z += camera_speed;
+		camera_target.z += camera_speed;
 	}
-	if(controller & C_UP) {
-		camera_position.z += 0.05;
+	if (controller & C_LEFT) {
+		printf("left\n");
+		camera_position.x += camera_speed;
+		camera_target.x += camera_speed;
 	}
-	if(controller & C_DOWN) {
-		camera_position.z -= 0.05;
-	}
-	if(controller & C_LOOK_LEFT) {
-		camera_rotation.y += 0.05;
-	}
-	if(controller & C_LOOK_RIGHT) {
-		camera_rotation.y -= 0.05;
+	if (controller & C_RIGHT) {
+		printf("left\n");
+		camera_position.x -= camera_speed;
+		camera_target.x -= camera_speed;
 	}
 }
+
 void update() {
-	
+
+	for(int i = 0; i < window_width * window_height; i++) {
+		z_buffer[i] = 100000.0;
+	}
+
 	camera_update();
 
 	if(flags & F_ROTATE) {
-		mesh.rotation.y += 0.008;
-		// mesh.rotation.z += 0.008;
+		mesh.rotation.x += 0.008;
+		mesh.rotation.z += 0.008;
 	}
 
 	triangle_count = 0;
@@ -127,6 +148,9 @@ void update() {
 	transform = mat4_mul(y_rotation_matrix, transform);
 	transform = mat4_mul(z_rotation_matrix, transform);
 	transform = mat4_mul(translation_matrix, transform);
+
+	mat4 view_matrix = mat4_look_at(camera_position, camera_target, (vec3){0., 1., 0});
+	transform = mat4_mul(view_matrix, transform);
 
 	for(int i = 0; i < mesh.face_count; i++) {
 		Face face = mesh.faces[i];
@@ -163,11 +187,12 @@ void update() {
 		
 
 		int should_render_face = (back_face_cull_dot_prod > 0.0);
-		// for(int i = 0; i < 3; i++) {
-		// 	if(transformed_face_vertices[i].z <= (camera_position.z + 5.0)) {
-		// 		should_render_face = 0;
-		// 	}
-		// }
+
+		float bound = 0.1;
+		if(a.z <= bound|| b.z <= bound || c.z <= bound) {
+			should_render_face = 0;
+		}
+
 		// if we should render the current face, project face vertices
 		// into a triangle to be rendered
 		if(should_render_face) {
@@ -192,6 +217,7 @@ void update() {
 			float light_intensity = (global_illumination_dot_prod >= 0.0) ? global_illumination_dot_prod : 0.0;
 			uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
 			
+			triangle.intensity = light_intensity;
 			triangle.col = tri_color;
 			triangle.tex_coords[0] = mesh.tex_uv[face.a_uv - 1];
 			triangle.tex_coords[1] = mesh.tex_uv[face.b_uv - 1];
@@ -202,7 +228,22 @@ void update() {
 }
 
 void render() {
-	draw_gradient(0xFF0066FF, 0xFFFFFFFF);
+
+	if(controller & (C_UP)) {
+		draw_gradient(0xFF111111, 0xFF880000);
+	}
+	else if(controller & (C_DOWN)) {
+		draw_gradient(0xFF111111, 0xFF000088);
+	}
+	else if(controller & (C_LEFT)) {
+		draw_gradient(0xFF111111, 0xF888800);
+	}
+	else if(controller & (C_RIGHT)) {
+		draw_gradient(0xFF111111, 0xFF008888);
+	}
+	else {
+		draw_gradient(0xFF111111, 0xFF888888);
+	}
 
 	if(flags & F_SORT_Z_DEPTH) {
 		merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);
@@ -216,7 +257,7 @@ void render() {
 				triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
 				triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
 				triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
-				texture
+				texture, triangle.intensity
 			);
 		} else if(flags & F_FILL) {
 			fill_triangle(
