@@ -21,12 +21,13 @@ double M_PI = 3.14159265358979323846;
 #define FPS 60
 
 enum {
+	FRUSTUM_LEFT,
+	FRUSTUM_RIGHT,
 	FRUSTUM_TOP,
 	FRUSTUM_BOTTOM,
-	FRUSTUM_FRONT,
-	FRUSTUM_BACK,
-	FRUSTUM_LEFT,
-	FRUSTUM_RIGHT
+	FRUSTUM_NEAR,
+	FRUSTUM_FAR,
+	n_frustum_planes
 } Frustum_Sides; 
 
 typedef struct {
@@ -43,6 +44,36 @@ vec3 camera_target = { 0., 0., 0. };
 Lighting lighting;
 Texture texture;
 mat4 projection_matrix;
+Plane frustum_planes[n_frustum_planes];
+
+void setup_frustum_planes(float fov, float znear, float zfar) {
+	frustum_planes[FRUSTUM_RIGHT] = (Plane){
+		{ 0., 0., 0.,},
+		{ .x = -cos(fov / 2.0), .y = 0., .z = sin(fov / 2.0) }
+	};
+	frustum_planes[FRUSTUM_LEFT] = (Plane){
+		{ 0., 0., 0.,},
+		{ .x = cos(fov / 2.0), .y = 0., .z = sin(fov / 2.0) }
+	};
+
+	frustum_planes[FRUSTUM_TOP] = (Plane){
+		{ 0., 0., 0.,},
+		{ .x = 0, .y = -cos(fov / 2.0), .z = sin(fov / 2.0) }
+	};
+	frustum_planes[FRUSTUM_BOTTOM] = (Plane){
+		{ 0., 0., 0.,},
+		{ .x = 0, .y = cos(fov / 2.0), .z = sin(fov / 2.0) }
+	};
+
+	frustum_planes[FRUSTUM_NEAR] = (Plane){
+		{ 0., 0., znear,},
+		{ .x = 0, .y = 0.0, .z = 1. }
+	};
+	frustum_planes[FRUSTUM_FAR] = (Plane){
+		{ 0., 0., zfar,},
+		{ .x = 0, .y = 0.0, .z = -1. }
+	};
+}
 
 vec2 project(vec3 v3) {
     vec2 projected;
