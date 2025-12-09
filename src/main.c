@@ -46,6 +46,10 @@ Texture texture;
 mat4 projection_matrix;
 Plane frustum_planes[n_frustum_planes];
 
+int point_is_inside_plane(Plane p, vec3 point) {
+	return vec3_dot(vec3_sub(point, p.point), p.normal) > 0.0;
+}
+
 void setup_frustum_planes(float fov, float znear, float zfar) {
 	frustum_planes[FRUSTUM_RIGHT] = (Plane){
 		{ 0., 0., 0.,},
