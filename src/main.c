@@ -40,11 +40,20 @@ static float MS_PER_FRAME = (1000.0 / FPS);
 const float fov_factor = 840.0;
 vec3 camera_position = { 0., 0., 1.};
 vec3 camera_target = { 0., 0., 0. };
+float camera_theta = M_PI / 2.0;
 
 Lighting lighting;
 Texture texture;
 mat4 projection_matrix;
 Plane frustum_planes[n_frustum_planes];
+
+
+void rotate_camera_y(float theta) {
+	camera_target.x = camera_position.x + cos(theta);
+	camera_target.z = camera_position.z + -sin(theta);
+
+	printf("camera_target.x = %f, camera_target.z = %f\n", camera_target.x, camera_target.z);
+}
 
 int point_is_inside_plane(Plane p, vec3 point) {
 	return vec3_dot(vec3_sub(point, p.point), p.normal) > 0.0;
@@ -94,7 +103,7 @@ void setup() {
 	// load_cube_mesh_data();
 	load_obj_file("assets/f22.obj", &mesh);
 
-
+	rotate_camera_y(camera_theta);
 	// set_redbrick_texture(&texture);
 	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
@@ -107,8 +116,8 @@ void setup() {
 		flags = 0x00000000;
 		flags = (flags | F_ROTATE);
 		flags = (flags | F_BACK_FACE_CULLING);
-		// flags = (flags | F_FILL);
-		flags = (flags | F_DRAW_TEXTURE);
+		flags = (flags | F_FILL);
+		// flags = (flags | F_DRAW_TEXTURE);
 		flags = (flags | F_SORT_Z_DEPTH);
 	}
 
@@ -134,25 +143,55 @@ void setup() {
 
 void camera_update() {
 	float camera_speed = 0.05;
-	if (controller & C_UP) {
+	float th = (M_PI) - camera_theta;
+	float dz = sin(th) * camera_speed;
+	float dx = cos(th) * camera_speed;
+	if (controller & CONTROLLER_W) {
 		printf("forward\n");
-		camera_position.z -= camera_speed;
-		camera_target.z -= camera_speed;
+		camera_position.z -= dz;
+		camera_target.z -= dz;
+		camera_position.x -= dx;
+		camera_target.x -= dx;
 	}
-	if (controller & C_DOWN) {
+	if (controller & CONTROLLER_S) {
 		printf("back\n");
-		camera_position.z += camera_speed;
-		camera_target.z += camera_speed;
+		camera_position.z += dz;
+		camera_target.z += dz;
+		camera_position.x += dx;
+		camera_target.x += dx;
 	}
-	if (controller & C_LEFT) {
+	if (controller & CONTROLLER_A) {
 		printf("left\n");
-		camera_position.x += camera_speed;
-		camera_target.x += camera_speed;
+		th = th - (M_PI / 2.0);
+		dz = sin(th) * camera_speed;
+		dx = cos(th) * camera_speed;
+		camera_position.z += dz;
+		camera_target.z += dz;
+		camera_position.x += dx;
+		camera_target.x += dx;
 	}
-	if (controller & C_RIGHT) {
+	if (controller & CONTROLLER_D) {
 		printf("left\n");
-		camera_position.x -= camera_speed;
-		camera_target.x -= camera_speed;
+		th = th - (M_PI / 2.0);
+		dz = sin(th) * camera_speed;
+		dx = cos(th) * camera_speed;
+		camera_position.z -= dz;
+		camera_target.z -= dz;
+		camera_position.x -= dx;
+		camera_target.x -= dx;
+	}
+	if (controller & CONTROLLER_L) {
+		printf("r right\n");
+		camera_theta += camera_speed;
+		rotate_camera_y(camera_theta);
+	}
+	if (controller & CONTROLLER_H) {
+		printf("r left\n");
+		camera_theta -= camera_speed;
+		if(camera_theta < 0.0) {
+			camera_theta += (2 * M_PI);
+		}
+		rotate_camera_y(camera_theta);
 	}
 }
 
@@ -264,21 +303,7 @@ void update() {
 
 void render() {
 
-	if(controller & (C_UP)) {
-		draw_gradient(0xFF111111, 0xFF880000);
-	}
-	else if(controller & (C_DOWN)) {
-		draw_gradient(0xFF111111, 0xFF000088);
-	}
-	else if(controller & (C_LEFT)) {
-		draw_gradient(0xFF111111, 0xF888800);
-	}
-	else if(controller & (C_RIGHT)) {
-		draw_gradient(0xFF111111, 0xFF008888);
-	}
-	else {
-		draw_gradient(0xFF111111, 0xFF888888);
-	}
+	draw_gradient(0xFF111111, 0xFF888888);
 
 	if(flags & F_SORT_Z_DEPTH) {
 		merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);

@@ -10,12 +10,14 @@
 #define m_min(a, b) ((a <= b) ? a : b)
 
 extern uint32_t controller;
-#define C_UP	 		(0x00000001)
-#define C_DOWN	  		(0x00000001 << 1)
-#define C_LEFT			(0x00000001 << 2)
-#define C_RIGHT			(0x00000001 << 3)
-#define C_LOOK_LEFT		(0x00000001 << 4)
-#define C_LOOK_RIGHT	(0x00000001 << 5)
+#define CONTROLLER_W	(0x00000001)
+#define CONTROLLER_A	(0x00000001 << 1)
+#define CONTROLLER_S	(0x00000001 << 2)
+#define CONTROLLER_D	(0x00000001 << 3)
+#define CONTROLLER_H	(0x00000001 << 4)
+#define CONTROLLER_J	(0x00000001 << 5)
+#define CONTROLLER_K	(0x00000001 << 6)
+#define CONTROLLER_L	(0x00000001 << 6)
 
 extern uint32_t flags;
 #define F_DRAW_VERTICES 	(0x00000001)

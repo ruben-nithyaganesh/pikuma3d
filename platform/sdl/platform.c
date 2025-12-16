@@ -99,23 +99,29 @@ void process_events() {
 
 			case SDL_KEYDOWN:
 			{
-				if(event.key.keysym.sym == SDLK_a) {
-					controller = flag_set(controller, C_LEFT, 1);
+				if(event.key.keysym.sym == SDLK_w) {
+					controller = flag_set(controller, CONTROLLER_W, 1);
 				}
-				else if(event.key.keysym.sym == SDLK_d) {
-					controller = flag_set(controller, C_RIGHT, 1);
-				}
-				else if(event.key.keysym.sym == SDLK_w) {
-					controller = flag_set(controller, C_UP, 1);
+				else if(event.key.keysym.sym == SDLK_a) {
+					controller = flag_set(controller, CONTROLLER_A, 1);
 				}
 				else if(event.key.keysym.sym == SDLK_s) {
-					controller = flag_set(controller, C_DOWN, 1);
+					controller = flag_set(controller, CONTROLLER_S, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_d) {
+					controller = flag_set(controller, CONTROLLER_D, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_h) {
+					controller = flag_set(controller, CONTROLLER_H, 1);
 				}
 				else if(event.key.keysym.sym == SDLK_j) {
-					controller = flag_set(controller, C_LOOK_LEFT, 1);
+					controller = flag_set(controller, CONTROLLER_J, 1);
+				}
+				else if(event.key.keysym.sym == SDLK_k) {
+					controller = flag_set(controller, CONTROLLER_K, 1);
 				}
 				else if(event.key.keysym.sym == SDLK_l) {
-					controller = flag_set(controller, C_LOOK_RIGHT, 1);
+					controller = flag_set(controller, CONTROLLER_L, 1);
 				}
 			}break;
 			case SDL_KEYUP:
@@ -146,23 +152,29 @@ void process_events() {
 				}
 
 				// controller stuff
+				if(event.key.keysym.sym == SDLK_w) {
+					controller = flag_set(controller, CONTROLLER_W, 0);
+				}
 				else if(event.key.keysym.sym == SDLK_a) {
-					controller = flag_set(controller, C_LEFT, 0);
-				}
-				else if(event.key.keysym.sym == SDLK_d) {
-					controller = flag_set(controller, C_RIGHT, 0);
-				}
-				else if(event.key.keysym.sym == SDLK_w) {
-					controller = flag_set(controller, C_UP, 0);
+					controller = flag_set(controller, CONTROLLER_A, 0);
 				}
 				else if(event.key.keysym.sym == SDLK_s) {
-					controller = flag_set(controller, C_DOWN, 0);
+					controller = flag_set(controller, CONTROLLER_S, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_d) {
+					controller = flag_set(controller, CONTROLLER_D, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_h) {
+					controller = flag_set(controller, CONTROLLER_H, 0);
 				}
 				else if(event.key.keysym.sym == SDLK_j) {
-					controller = flag_set(controller, C_LOOK_LEFT, 0);
+					controller = flag_set(controller, CONTROLLER_J, 0);
+				}
+				else if(event.key.keysym.sym == SDLK_k) {
+					controller = flag_set(controller, CONTROLLER_K, 0);
 				}
 				else if(event.key.keysym.sym == SDLK_l) {
-					controller = flag_set(controller, C_LOOK_RIGHT, 0);
+					controller = flag_set(controller, CONTROLLER_L, 0);
 				}
 			}break;
 			default:
