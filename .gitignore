@@ -11,3 +11,9 @@
 *.exe
 build/sdl/sdl_renderer
 sdl_renderer
+*.vs
+*/.vs
+
+*.suo
+*.db
+*.db-shm

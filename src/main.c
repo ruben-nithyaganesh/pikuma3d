@@ -13,11 +13,18 @@
 #include "array.h"
 
 #ifndef M_PI
-double M_PI = 3.14159265358979323846;
+	#define M_PI 3.14159265358979323846
 #endif
 
-#define WIDTH 1280
-#define HEIGHT 720
+#ifndef WIN32_BUILD
+	#define WIDTH 1280
+	#define HEIGHT 720
+#endif
+#ifdef WIN32_BUILD
+	#define WIDTH 1920
+	#define HEIGHT 1080
+#endif
+
 #define FPS 60
 
 enum {
@@ -142,7 +149,7 @@ void setup() {
 }
 
 void camera_update() {
-	float camera_speed = 0.05;
+	float camera_speed = 0.025;
 	float th = (M_PI) - camera_theta;
 	float dz = sin(th) * camera_speed;
 	float dx = cos(th) * camera_speed;

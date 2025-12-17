@@ -47,48 +47,70 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				running = 0;
 				return 0;
 		}
-		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
 		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
 		{
-			int VKCode = wParam;
-			char was_down = ((wParam & (1 << 30)) != 0);
-			char is_down = ((wParam & (1 << 31)) == 0);
-			if(is_down && !was_down){
+				WORD vkCode = LOWORD(wParam);                                 // virtual-key code
 				
-				if(VKCode == 'W') {
+				WORD keyFlags = HIWORD(lParam);
+
+				WORD scanCode = LOBYTE(keyFlags);                             // scan code
+				BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED; // extended-key flag, 1 if scancode has 0xE0 prefix
+				
+				if (isExtendedKey)
+						scanCode = MAKEWORD(scanCode, 0xE0);
+
+				BOOL wasKeyDown = (keyFlags & KF_REPEAT) == KF_REPEAT;        // previous key-state flag, 1 on autorepeat
+				WORD repeatCount = LOWORD(lParam);                            // repeat count, > 0 if several keydown messages was combined into one message
+
+				BOOL isKeyReleased = (keyFlags & KF_UP) == KF_UP;             // transition-state flag, 1 on keyup
+
+				// if we want to distinguish these keys:
+				switch (vkCode)
+				{
+					case 'Q':
+					{
+						running = 0;
+					}break;
+					case 'W':
+					{
+						controller = flag_set(controller, CONTROLLER_W, !isKeyReleased);
+					}break;
+					case 'A':
+					{
+						controller = flag_set(controller, CONTROLLER_A, !isKeyReleased);
+					}break;
+					case 'S':
+					{
+						controller = flag_set(controller, CONTROLLER_S, !isKeyReleased);
+					}break;
+					case 'D':
+					{
+						controller = flag_set(controller, CONTROLLER_D, !isKeyReleased);
+					}break;
+					case 'H':
+					{
+						controller = flag_set(controller, CONTROLLER_H, !isKeyReleased);
+					}break;
+					case 'J':
+					{
+						controller = flag_set(controller, CONTROLLER_J, !isKeyReleased);
+					}break;
+					case 'K':
+					{
+						controller = flag_set(controller, CONTROLLER_K, !isKeyReleased);
+					}break;
+					case 'L':
+					{
+						controller = flag_set(controller, CONTROLLER_L, !isKeyReleased);
+					}break;
 				}
-				else if(VKCode == 'A') {
-				}
-				else if(VKCode == 'S') {
-					flags = flag_toggle(flags, F_DRAW_LINES);
-				}
-				else if(VKCode == 'D') {
-				}
-				else if(VKCode == 'Q') {
-					PostQuitMessage(0);
-					running = 0;
-					return 0;
-				}
-				else if(VKCode == 'E') {
-				}
-				else if(VKCode == 'R') {
-				}
-				else if(VKCode == 'C') {
-				}
-				else if(VKCode == VK_UP) {
-				}
-				else if(VKCode == VK_LEFT) {
-				}
-				else if(VKCode == VK_DOWN) {
-				}
-				else if(VKCode == VK_RIGHT) {
-				}
-				else if(VKCode == VK_ESCAPE) {
-				}
-				else if(VKCode == VK_SPACE) {
-				}
-			}
+
+				// ...
 		}
+		break;
 		default:
 		{
 			result = DefWindowProc(hwnd, uMsg, wParam, lParam);

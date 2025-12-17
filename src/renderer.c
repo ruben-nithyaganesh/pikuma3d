@@ -81,9 +81,9 @@ uint32_t lerp_pixel(uint32_t c, float i) {
 	uint8_t g = (c & 0x0000FF00) >> 8;
 	uint8_t b = (c & 0x000000FF);
 
-	u_int8_t lerped_r = (uint8_t)(r * i);
-	u_int8_t lerped_g = (uint8_t)(g * i);
-	u_int8_t lerped_b = (uint8_t)(b * i);
+	uint8_t lerped_r = (uint8_t)(r * i);
+	uint8_t lerped_g = (uint8_t)(g * i);
+	uint8_t lerped_b = (uint8_t)(b * i);
 
 	lerped = 0xFF000000 | (lerped_r << 16) | (lerped_g << 8) | (lerped_b);
 	return lerped;
