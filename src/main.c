@@ -106,7 +106,7 @@ vec2 project(vec3 v3) {
 
 void setup() {
 		
-	mesh_count = 2;
+	mesh_count = 3;
 	meshes = (Mesh *)malloc(sizeof(Mesh) * mesh_count);
 
 	init_renderer(WIDTH, HEIGHT);
@@ -117,6 +117,7 @@ void setup() {
 
 	load_obj_file("assets/f22.obj", &(meshes[0]));
 	load_obj_file("assets/f22.obj", &(meshes[1]));
+	load_obj_file("assets/f22.obj", &(meshes[2]));
 
 	rotate_camera_y(camera_theta);
 	// set_redbrick_texture(&texture);
@@ -130,6 +131,7 @@ void setup() {
 	}
 
 	meshes[1].translation.x = 2.0;
+	meshes[2].translation.x = 4.0;
 
 	triangles_to_render = (Triangle *) malloc(face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(face_count * sizeof(Triangle));
@@ -230,8 +232,8 @@ void update() {
 		Mesh mesh = meshes[mesh_index];
 
 		if(flags & F_ROTATE) {
-			mesh.rotation.x += 0.008;
-			mesh.rotation.z += 0.008;
+			meshes[mesh_index].rotation.x += 0.008;
+			meshes[mesh_index].rotation.z += 0.008;
 		}
 
 
@@ -311,7 +313,7 @@ void update() {
 					projected_point.y = (window_height / 2.0) + projected_point.y;
 					triangle.points[j] = projected_point;
 					
-					triangle.avg_depth += face_world_space_vertices[j].z * (1.0 / 3.0);
+					triangle.avg_depth += transformed_face_vertices[j].z * (1.0 / 3.0);
 				}
 				
 				// this is gonna assume global illumination direction is a unit vector
