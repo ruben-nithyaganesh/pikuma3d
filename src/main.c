@@ -230,6 +230,8 @@ void update() {
 	camera_update();
 	
 
+	triangle_count = 0;
+
 	for (int mesh_index = 0; mesh_index < mesh_count; mesh_index++) {
 		Mesh mesh = meshes[mesh_index];
 
@@ -238,7 +240,6 @@ void update() {
 			mesh.rotation.z += 0.008;
 		}
 
-		triangle_count = 0;
 
 		mat4 scale_matrix = mat4_scale_matrix(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 		mat4 translation_matrix = mat4_translation_matrix(mesh.translation.x, mesh.translation.y, mesh.translation.z);
@@ -269,7 +270,9 @@ void update() {
 			for(int j = 0; j < 3; j++) {
 				vec4 transformed_point = vec4_from_vec3(face_vertices[j]);
 				transformed_point = mat4_mul_vec4(transform, transformed_point);
+
 				face_world_space_vertices[j] = vec3_from_vec4(transformed_point);
+
 				transformed_point = mat4_mul_vec4(view_matrix, transformed_point);
 				transformed_face_vertices[j] = vec3_from_vec4(transformed_point);
 			}
