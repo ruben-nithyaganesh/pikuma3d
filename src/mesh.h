@@ -27,7 +27,7 @@ typedef struct {
     Face *faces;
 } Mesh;
 
-extern Mesh mesh;
+extern Mesh global_mesh;
 
 char skip_line(FILE *f);
 void load_cube_mesh_data();

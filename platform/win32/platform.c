@@ -74,6 +74,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					{
 						running = 0;
 					}break;
+					case 'R':
+					{
+						if (isKeyReleased) {
+							flags = flag_toggle(flags, F_ROTATE);
+						}
+					}break;
+					case 'V':
+					{
+						if (isKeyReleased) {
+							flags = flag_toggle(flags, F_DRAW_VERTICES);
+						}
+					}break;
 					case 'W':
 					{
 						controller = flag_set(controller, CONTROLLER_W, !isKeyReleased);

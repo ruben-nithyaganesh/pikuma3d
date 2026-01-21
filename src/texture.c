@@ -49,6 +49,10 @@ void load_texture_from_file(const char *filename, Texture *t) {
 
 		upng_free(upng);
 	}
+	else {
+		printf("Error loading the file %s", filename);
+		exit(-1);
+	}
 }
 
 uint32_t uint8_to_uint32_col(uint8_t c8) {

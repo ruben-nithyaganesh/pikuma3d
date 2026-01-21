@@ -18,7 +18,7 @@ vec3 cube_vertices[8] = {
     { .x = -1,  .y = -1,  .z = 1}
 };
 
-Mesh mesh = {
+Mesh global_mesh = {
     .face_count = 0,
     .faces = NULL,
 
@@ -60,7 +60,7 @@ void load_obj_file(char *filename, Mesh *mesh) {
 	FILE *obj_file = fopen(filename, "r");
 	if(!obj_file) {
 		printf("Couldn't open file: \'%s\'\n", filename);
-		return;
+		exit(-1);
 	}
 	
 	mesh->vertices = NULL;
@@ -129,7 +129,7 @@ void load_obj_file(char *filename, Mesh *mesh) {
 		}
 	}
 		
-	// printf("loaded %d vertices\n", array_length(mesh->vertices));
-	// printf("loaded %d faces\n", array_length(mesh->faces));
+	printf("loaded %d vertices\n", array_length(mesh->vertices));
+	printf("loaded %d faces\n", array_length(mesh->faces));
 	fclose(obj_file);
 }

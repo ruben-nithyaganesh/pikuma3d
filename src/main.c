@@ -45,7 +45,7 @@ typedef struct {
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., 1.};
+vec3 camera_position = { 0., 0., 2.};
 vec3 camera_target = { 0., 0., 0. };
 float camera_theta = M_PI / 2.0;
 
@@ -54,6 +54,8 @@ Texture texture;
 mat4 projection_matrix;
 Plane frustum_planes[n_frustum_planes];
 
+int mesh_count;
+Mesh *meshes;
 
 void rotate_camera_y(float theta) {
 	camera_target.x = camera_position.x + cos(theta);
@@ -103,17 +105,34 @@ vec2 project(vec3 v3) {
 }
 
 void setup() {
-	
+		
+	mesh_count = 2;
+	meshes = (Mesh *)malloc(sizeof(Mesh) * mesh_count);
+
 	init_renderer(WIDTH, HEIGHT);
 	// Texture png_texture;
 	load_texture_from_file("assets/f22.png", &texture);
 	// load_cube_mesh_data();
-	load_obj_file("assets/f22.obj", &mesh);
+	
+
+	load_obj_file("assets/f22.obj", &(meshes[0]));
+	load_obj_file("assets/f22.obj", &(meshes[1]));
 
 	rotate_camera_y(camera_theta);
 	// set_redbrick_texture(&texture);
-	triangles_to_render = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
-	triangles_to_render_scratch = (Triangle *) malloc(mesh.face_count * sizeof(Triangle));
+
+	int face_count = 0;
+	for(int i = 0; i < mesh_count; i++) {
+		face_count += meshes[i].face_count;
+		meshes[i].scale = (vec3) { .1, .1, .1 };
+		meshes[i].translation = (vec3) { .0, .0, .0 };
+		meshes[i].rotation = (vec3) { .0, .0, .0 };
+	}
+
+	meshes[1].translation.x = 5.0;
+
+	triangles_to_render = (Triangle *) malloc(face_count * sizeof(Triangle));
+	triangles_to_render_scratch = (Triangle *) malloc(face_count * sizeof(Triangle));
 		
 	triangle_count = 0;
 	
@@ -209,101 +228,109 @@ void update() {
 	}
 
 	camera_update();
-
-	if(flags & F_ROTATE) {
-		mesh.rotation.x += 0.008;
-		mesh.rotation.z += 0.008;
-	}
-
-	triangle_count = 0;
-
-	mat4 scale_matrix = mat4_scale_matrix(mesh.scale.x, mesh.scale.y, mesh.scale.z);
-	mat4 translation_matrix = mat4_translation_matrix(mesh.translation.x, mesh.translation.y, mesh.translation.z);
-	mat4 x_rotation_matrix = mat4_rotation_matrix_x(mesh.rotation.x);
-	mat4 y_rotation_matrix = mat4_rotation_matrix_y(mesh.rotation.y);
-	mat4 z_rotation_matrix = mat4_rotation_matrix_z(mesh.rotation.z);
 	
-	mat4 transform = mat4_identity();
-	transform = mat4_mul(scale_matrix, transform);
-	transform = mat4_mul(x_rotation_matrix, transform);
-	transform = mat4_mul(y_rotation_matrix, transform);
-	transform = mat4_mul(z_rotation_matrix, transform);
-	transform = mat4_mul(translation_matrix, transform);
 
-	mat4 view_matrix = mat4_look_at(camera_position, camera_target, (vec3){0., 1., 0});
-	transform = mat4_mul(view_matrix, transform);
+	for (int mesh_index = 0; mesh_index < mesh_count; mesh_index++) {
+		Mesh mesh = meshes[mesh_index];
 
-	for(int i = 0; i < mesh.face_count; i++) {
-		Face face = mesh.faces[i];
-		vec3 face_vertices[3];
-		face_vertices[0] = mesh.vertices[face.a - 1];
-		face_vertices[1] = mesh.vertices[face.b - 1];
-		face_vertices[2] = mesh.vertices[face.c - 1];
-		
-		// transform each vertex of the current face according to the current mesh rotation
-		vec3 transformed_face_vertices[3];
-		for(int j = 0; j < 3; j++) {
-			vec4 transformed_point = vec4_from_vec3(face_vertices[j]);
-			transformed_point = mat4_mul_vec4(transform, transformed_point);
-			transformed_face_vertices[j] = vec3_from_vec4(transformed_point);
-		}
-		
-		// if back face culling is enabled, compute actual dot prod
-		// of face normal to camera position vector
-		vec3 a = transformed_face_vertices[0];
-		vec3 b = transformed_face_vertices[1];
-		vec3 c = transformed_face_vertices[2];
-
-		vec3 ab = vec3_sub(b, a);
-		vec3 ac = vec3_sub(c, a);
-
-		// normal is normalised
-		vec3 normal = vec3_normalise(vec3_cross_prod(ab, ac));
-
-		vec3 camera_ray = vec3_sub(camera_position, a);
-		
-		float back_face_cull_dot_prod = vec3_dot(normal, camera_ray);
-		if(!(flags & F_BACK_FACE_CULLING))
-			back_face_cull_dot_prod = 1.0;
-		
-
-		int should_render_face = (back_face_cull_dot_prod > 0.0);
-
-		float bound = 0.1;
-		if(a.z <= bound|| b.z <= bound || c.z <= bound) {
-			should_render_face = 0;
+		if(flags & F_ROTATE) {
+			mesh.rotation.x += 0.008;
+			mesh.rotation.z += 0.008;
 		}
 
-		// if we should render the current face, project face vertices
-		// into a triangle to be rendered
-		if(should_render_face) {
-			Triangle triangle;
-			triangle.avg_depth = 0.0;
-			for(int j = 0; j < 3; j++) {
-				vec4 projected_point = mat4_project_and_normalise(vec4_from_vec3(transformed_face_vertices[j]), projection_matrix);
-				// vec2 projected_point = project(transformed_face_vertices[j]);
-				projected_point.x *= (window_width / 2.0);
-				projected_point.y *= (window_height / 2.0);
+		triangle_count = 0;
 
-				projected_point.x = (window_width / 2.0) + projected_point.x;
-				projected_point.y = (window_height / 2.0) + projected_point.y;
-				triangle.points[j] = projected_point;
-				
-				triangle.avg_depth += transformed_face_vertices[j].z * (1.0 / 3.0);
-			}
+		mat4 scale_matrix = mat4_scale_matrix(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+		mat4 translation_matrix = mat4_translation_matrix(mesh.translation.x, mesh.translation.y, mesh.translation.z);
+		mat4 x_rotation_matrix = mat4_rotation_matrix_x(mesh.rotation.x);
+		mat4 y_rotation_matrix = mat4_rotation_matrix_y(mesh.rotation.y);
+		mat4 z_rotation_matrix = mat4_rotation_matrix_z(mesh.rotation.z);
 		
-			// this is gonna assume global illumination direction is a unit vector
-			// normal is normalised above, so also unit vector
-			float global_illumination_dot_prod = -vec3_dot(normal, lighting.global_illumination_direction);
-			float light_intensity = (global_illumination_dot_prod >= 0.0) ? global_illumination_dot_prod : 0.0;
-			uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
+		mat4 transform = mat4_identity();
+		transform = mat4_mul(scale_matrix, transform);
+		transform = mat4_mul(x_rotation_matrix, transform);
+		transform = mat4_mul(y_rotation_matrix, transform);
+		transform = mat4_mul(z_rotation_matrix, transform);
+		transform = mat4_mul(translation_matrix, transform);
+
+		mat4 view_matrix = mat4_look_at(camera_position, camera_target, (vec3){0., 1., 0});
+		// transform = mat4_mul(view_matrix, transform);
+
+		for(int i = 0; i < mesh.face_count; i++) {
+			Face face = mesh.faces[i];
+			vec3 face_vertices[3];
+			face_vertices[0] = mesh.vertices[face.a - 1];
+			face_vertices[1] = mesh.vertices[face.b - 1];
+			face_vertices[2] = mesh.vertices[face.c - 1];
 			
-			triangle.intensity = light_intensity;
-			triangle.col = tri_color;
-			triangle.tex_coords[0] = mesh.tex_uv[face.a_uv - 1];
-			triangle.tex_coords[1] = mesh.tex_uv[face.b_uv - 1];
-			triangle.tex_coords[2] = mesh.tex_uv[face.c_uv - 1];
-			triangles_to_render[triangle_count++] = triangle;
+			// transform each vertex of the current face according to the current mesh rotation
+			vec3 transformed_face_vertices[3];
+			vec3 face_world_space_vertices[3];
+			for(int j = 0; j < 3; j++) {
+				vec4 transformed_point = vec4_from_vec3(face_vertices[j]);
+				transformed_point = mat4_mul_vec4(transform, transformed_point);
+				face_world_space_vertices[j] = vec3_from_vec4(transformed_point);
+				transformed_point = mat4_mul_vec4(view_matrix, transformed_point);
+				transformed_face_vertices[j] = vec3_from_vec4(transformed_point);
+			}
+			
+			// if back face culling is enabled, compute actual dot prod
+			// of face normal to camera position vector
+			vec3 a = transformed_face_vertices[0];
+			vec3 b = transformed_face_vertices[1];
+			vec3 c = transformed_face_vertices[2];
+
+			vec3 ab = vec3_sub(b, a);
+			vec3 ac = vec3_sub(c, a);
+
+			// normal is normalised
+			vec3 normal = vec3_normalise(vec3_cross_prod(ab, ac));
+
+			vec3 camera_ray = vec3_sub(camera_position, a);
+			
+			float back_face_cull_dot_prod = vec3_dot(normal, camera_ray);
+			if(!(flags & F_BACK_FACE_CULLING))
+				back_face_cull_dot_prod = 1.0;
+			
+
+			int should_render_face = (back_face_cull_dot_prod > 0.0);
+
+			float bound = 0.1;
+			if(a.z <= bound|| b.z <= bound || c.z <= bound) {
+				should_render_face = 0;
+			}
+
+			// if we should render the current face, project face vertices
+			// into a triangle to be rendered
+			if(should_render_face) {
+				Triangle triangle;
+				triangle.avg_depth = 0.0;
+				for(int j = 0; j < 3; j++) {
+					vec4 projected_point = mat4_project_and_normalise(vec4_from_vec3(transformed_face_vertices[j]), projection_matrix);
+					// vec2 projected_point = project(transformed_face_vertices[j]);
+					projected_point.x *= (window_width / 2.0);
+					projected_point.y *= (window_height / 2.0);
+
+					projected_point.x = (window_width / 2.0) + projected_point.x;
+					projected_point.y = (window_height / 2.0) + projected_point.y;
+					triangle.points[j] = projected_point;
+					
+					triangle.avg_depth += transformed_face_vertices[j].z * (1.0 / 3.0);
+				}
+			
+				// this is gonna assume global illumination direction is a unit vector
+				// normal is normalised above, so also unit vector
+				float global_illumination_dot_prod = -vec3_dot(normal, lighting.global_illumination_direction);
+				float light_intensity = (global_illumination_dot_prod >= 0.0) ? global_illumination_dot_prod : 0.0;
+				uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
+				
+				triangle.intensity = light_intensity;
+				triangle.col = tri_color;
+				triangle.tex_coords[0] = mesh.tex_uv[face.a_uv - 1];
+				triangle.tex_coords[1] = mesh.tex_uv[face.b_uv - 1];
+				triangle.tex_coords[2] = mesh.tex_uv[face.c_uv - 1];
+				triangles_to_render[triangle_count++] = triangle;
+			}
 		}
 	}
 }
