@@ -272,9 +272,9 @@ void update() {
 			
 			// if back face culling is enabled, compute actual dot prod
 			// of face normal to camera position vector
-			vec3 a = transformed_face_vertices[0];
-			vec3 b = transformed_face_vertices[1];
-			vec3 c = transformed_face_vertices[2];
+			vec3 a = face_world_space_vertices[0];
+			vec3 b = face_world_space_vertices[1];
+			vec3 c = face_world_space_vertices[2];
 
 			vec3 ab = vec3_sub(b, a);
 			vec3 ac = vec3_sub(c, a);
@@ -292,7 +292,7 @@ void update() {
 			int should_render_face = (back_face_cull_dot_prod > 0.0);
 
 			float bound = 0.1;
-			if(a.z <= bound|| b.z <= bound || c.z <= bound) {
+			if(transformed_face_vertices[0].z <= bound|| transformed_face_vertices[1].z <= bound || transformed_face_vertices[2].z <= bound) {
 				should_render_face = 0;
 			}
 
@@ -314,22 +314,9 @@ void update() {
 					triangle.avg_depth += face_world_space_vertices[j].z * (1.0 / 3.0);
 				}
 				
-
-				vec3 ws_a = face_world_space_vertices[0];
-				vec3 ws_b = face_world_space_vertices[1];
-				vec3 ws_c = face_world_space_vertices[2];
-	
-				
-				vec3 ws_ab = vec3_sub(ws_b, ws_a);
-				vec3 ws_ac = vec3_sub(ws_c, ws_a);
-
-				// normal is normalised
-				vec3 ws_normal = vec3_normalise(vec3_cross_prod(ws_ab, ws_ac));
-				vec3 ws_camera_ray = vec3_sub(camera_position, ws_a);
-
 				// this is gonna assume global illumination direction is a unit vector
 				// normal is normalised above, so also unit vector
-				float global_illumination_dot_prod = -vec3_dot(ws_normal, lighting.global_illumination_direction);
+				float global_illumination_dot_prod = -vec3_dot(normal, lighting.global_illumination_direction);
 				float light_intensity = (global_illumination_dot_prod >= 0.0) ? global_illumination_dot_prod : 0.0;
 				uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
 				
