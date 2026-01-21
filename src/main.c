@@ -129,7 +129,7 @@ void setup() {
 		meshes[i].rotation = (vec3) { .0, .0, .0 };
 	}
 
-	meshes[1].translation.x = 5.0;
+	meshes[1].translation.x = 2.0;
 
 	triangles_to_render = (Triangle *) malloc(face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(face_count * sizeof(Triangle));
@@ -173,21 +173,18 @@ void camera_update() {
 	float dz = sin(th) * camera_speed;
 	float dx = cos(th) * camera_speed;
 	if (controller & CONTROLLER_W) {
-		printf("forward\n");
 		camera_position.z -= dz;
 		camera_target.z -= dz;
 		camera_position.x -= dx;
 		camera_target.x -= dx;
 	}
 	if (controller & CONTROLLER_S) {
-		printf("back\n");
 		camera_position.z += dz;
 		camera_target.z += dz;
 		camera_position.x += dx;
 		camera_target.x += dx;
 	}
 	if (controller & CONTROLLER_A) {
-		printf("left\n");
 		th = th - (M_PI / 2.0);
 		dz = sin(th) * camera_speed;
 		dx = cos(th) * camera_speed;
@@ -197,7 +194,6 @@ void camera_update() {
 		camera_target.x += dx;
 	}
 	if (controller & CONTROLLER_D) {
-		printf("left\n");
 		th = th - (M_PI / 2.0);
 		dz = sin(th) * camera_speed;
 		dx = cos(th) * camera_speed;
@@ -207,12 +203,10 @@ void camera_update() {
 		camera_target.x -= dx;
 	}
 	if (controller & CONTROLLER_L) {
-		printf("r right\n");
 		camera_theta += camera_speed;
 		rotate_camera_y(camera_theta);
 	}
 	if (controller & CONTROLLER_H) {
-		printf("r left\n");
 		camera_theta -= camera_speed;
 		if(camera_theta < 0.0) {
 			camera_theta += (2 * M_PI);
@@ -228,7 +222,7 @@ void update() {
 	}
 
 	camera_update();
-	
+	mat4 view_matrix = mat4_look_at(camera_position, camera_target, (vec3){0., 1., 0});
 
 	triangle_count = 0;
 
@@ -254,7 +248,6 @@ void update() {
 		transform = mat4_mul(z_rotation_matrix, transform);
 		transform = mat4_mul(translation_matrix, transform);
 
-		mat4 view_matrix = mat4_look_at(camera_position, camera_target, (vec3){0., 1., 0});
 		// transform = mat4_mul(view_matrix, transform);
 
 		for(int i = 0; i < mesh.face_count; i++) {
@@ -318,12 +311,25 @@ void update() {
 					projected_point.y = (window_height / 2.0) + projected_point.y;
 					triangle.points[j] = projected_point;
 					
-					triangle.avg_depth += transformed_face_vertices[j].z * (1.0 / 3.0);
+					triangle.avg_depth += face_world_space_vertices[j].z * (1.0 / 3.0);
 				}
-			
+				
+
+				vec3 ws_a = face_world_space_vertices[0];
+				vec3 ws_b = face_world_space_vertices[1];
+				vec3 ws_c = face_world_space_vertices[2];
+	
+				
+				vec3 ws_ab = vec3_sub(ws_b, ws_a);
+				vec3 ws_ac = vec3_sub(ws_c, ws_a);
+
+				// normal is normalised
+				vec3 ws_normal = vec3_normalise(vec3_cross_prod(ws_ab, ws_ac));
+				vec3 ws_camera_ray = vec3_sub(camera_position, ws_a);
+
 				// this is gonna assume global illumination direction is a unit vector
 				// normal is normalised above, so also unit vector
-				float global_illumination_dot_prod = -vec3_dot(normal, lighting.global_illumination_direction);
+				float global_illumination_dot_prod = -vec3_dot(ws_normal, lighting.global_illumination_direction);
 				float light_intensity = (global_illumination_dot_prod >= 0.0) ? global_illumination_dot_prod : 0.0;
 				uint32_t tri_color = grayscale_of_intensity(light_intensity, 0x55, 0xDD);
 				
