@@ -36,3 +36,9 @@ int bound(int x, int lower, int upper) {
 	return x;
 }
 
+float mylerp(float a, float b, float t) {
+	if (t <= 0.0) return a;
+	if (t >= 1.0) return b;
+	float lerped = a + (b - a) * t;
+	return lerped;
+}

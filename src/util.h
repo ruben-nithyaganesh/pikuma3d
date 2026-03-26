@@ -7,6 +7,7 @@ uint32_t flag_set(uint32_t flags, uint32_t f, uint8_t on);
 
 void swap_int(int *a, int *b);
 void swap_float(float *a, float *b);
+float mylerp(float a, float b, float t);
 
 int bound(int x, int lower, int upper);
 

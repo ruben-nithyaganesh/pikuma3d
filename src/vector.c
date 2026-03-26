@@ -12,7 +12,7 @@ float vec2_mag_squared(vec2 v) {
 }
 
 float vec2_mag(vec2 v) {
-    return sqrt(vec2_mag_squared(v));
+    return (float) sqrt(vec2_mag_squared(v));
 }
 
 vec2 vec2_mul(vec2 v, double s) {
