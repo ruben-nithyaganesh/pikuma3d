@@ -15,9 +15,9 @@ void* array_hold(void* array, int count, int item_size) {
         return base + 2;
     } else if (ARRAY_OCCUPIED(array) + count <= ARRAY_CAPACITY(array)) {
         ARRAY_OCCUPIED(array) += count;
-        return array;
-    } else {
-        int needed_size = ARRAY_OCCUPIED(array) + count;
+		return array;
+	    } else {
+		int needed_size = ARRAY_OCCUPIED(array) + count;
         int double_curr = ARRAY_CAPACITY(array) * 2;
         int capacity = needed_size > double_curr ? needed_size : double_curr;
         int occupied = needed_size;

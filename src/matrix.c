@@ -139,10 +139,10 @@ mat4 mat4_translation_matrix(float tx, float ty, float tz) {
 
 mat4 mat4_rotation_matrix_x(float a) {
 	// x rotation
-	// [1 0 	 0 		 0]
-	// [0 cos(a) -sin(a) 0]
-	// [0 sin(a) cos(a)  0]
-	// [0 0      0       1]
+	// [1  0 	    0 		  0]
+	// [0  cos(a) -sin(a) 0]
+	// [0  sin(a) cos(a)  0]
+	// [0  0      0       1]
 	mat4 rm_x = mat4_identity();
 	rm_x.e11 = cos(a);
 	rm_x.e12 = -sin(a);
@@ -171,7 +171,7 @@ mat4 mat4_rotation_matrix_z(float a) {
 	// z rotation
 	// [cos(a) -sin(a) 0 0]
 	// [sin(a) cos(a)  0 0]
-	// [0	   0       1 0]
+	// [0	     0       1 0]
 	// [0      0       0 1]
 	mat4 rm_z = mat4_identity();
 	rm_z.e00 = cos(a);

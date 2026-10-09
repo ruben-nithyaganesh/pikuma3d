@@ -267,8 +267,8 @@ void draw_flat_bottom_triangle(uint32_t value, int x0, int y0, int x1, int y1, i
 
 		int start = m_min(x_start_int, x_end_int);
 		int len = abs(x_start_int - x_end_int);
-		for(int j = 0; j <= len; j++)
-			draw_pixel(value, start + j, i);
+
+		for(int j = 0; j <= len; j++) draw_pixel(value, start + j, i);
 
 	}
 }
@@ -294,8 +294,7 @@ void draw_flat_top_triangle(uint32_t value, int x0, int y0, int x1, int y1, int 
 
 		int start = m_min(x_start_int, x_end_int);
 		int len = abs(x_start_int - x_end_int);
-		for(int j = 0; j <= len; j++)
-			draw_pixel(value, start + j, i);
+		for(int j = 0; j <= len; j++) draw_pixel(value, start + j, i);
 	}
 }
 
@@ -320,9 +319,7 @@ void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 	// get (Mx, My), intersection of triangle midpoint line
 	int My = y1;
 	int Mx = x0;
-	if (y2 != y0) {
-		Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
-	}
+	if (y2 != y0) Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
 
 	draw_flat_bottom_triangle(value, x0, y0, x1, y1, Mx, My);
 	draw_flat_top_triangle(value, x1, y1, Mx, My, x2, y2);
@@ -331,7 +328,7 @@ void fill_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 void draw_rect(uint32_t value, int top, int left, int width, int height) {
 	for(int y = top; y < top + height; y ++) {
 		for(int x = left; x < left + width; x ++) {
-            draw_pixel(value, x, y);
+			draw_pixel(value, x, y);
 		}
 	}
 }

@@ -384,7 +384,7 @@ void update() {
 			face_vertices[1] = mesh.vertices[face.b - 1];
 			face_vertices[2] = mesh.vertices[face.c - 1];
 			
-			// transform each vertex of the current face according to the current mesh rotation
+			// transform each vertex of the current face according to the current mesh rotation;
 			vec3 transformed_face_vertices[3];
 			vec3 face_world_space_vertices[3];
 			for(int j = 0; j < 3; j++) {
@@ -422,7 +422,7 @@ void update() {
 			// into a triangle to be rendered
 			if(should_render_face) {
 				
-				Triangle clipping_triangle;
+			    Triangle clipping_triangle;
 				clipping_triangle.points[0] = vec4_from_vec3(transformed_face_vertices[0]);
 				clipping_triangle.points[1] = vec4_from_vec3(transformed_face_vertices[1]);
 				clipping_triangle.points[2] = vec4_from_vec3(transformed_face_vertices[2]);
@@ -471,7 +471,7 @@ void update() {
 
 void render() {
 
-	draw_gradient(0xFF111111, 0xFF888888);
+	draw_gradient(0xFF444444, 0xFF880088);
 
 	if(flags & F_SORT_Z_DEPTH) {
 		merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);
