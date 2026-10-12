@@ -69,14 +69,14 @@ int point_is_inside_plane(vec3 point, Plane p) {
 	return vec3_dot(vec3_sub(point, p.point), p.normal) > 0.0;
 }
 
-void setup_frustum_planes(float fov, float znear, float zfar) {
+void setup_frustum_planes(float fov, float aspect_ratio, float znear, float zfar) {
 	frustum_planes[FRUSTUM_RIGHT] = (Plane){
 		{ 0., 0., 0.,},
-		{ .x = -cos(fov / 2.0), .y = 0., .z = sin(fov / 2.0) }
+		{ .x = -cos((fov / aspect_ratio) / 2.0), .y = 0., .z = sin((fov / aspect_ratio) / 2.0) }
 	};
 	frustum_planes[FRUSTUM_LEFT] = (Plane){
 		{ 0., 0., 0.,},
-		{ .x = cos(fov / 2.0), .y = 0., .z = sin(fov / 2.0) }
+		{ .x = cos((fov / aspect_ratio) / 2.0), .y = 0., .z = sin((fov / aspect_ratio) / 2.0) }
 	};
 
 	frustum_planes[FRUSTUM_TOP] = (Plane){
@@ -87,7 +87,6 @@ void setup_frustum_planes(float fov, float znear, float zfar) {
 		{ 0., 0., 0.,},
 		{ .x = 0, .y = cos(fov / 2.0), .z = sin(fov / 2.0) }
 	};
-
 	frustum_planes[FRUSTUM_NEAR] = (Plane){
 		{ 0., 0., znear,},
 		{ .x = 0, .y = 0.0, .z = 1. }
@@ -267,7 +266,7 @@ void setup() {
 		zfar
 	);
 
-	setup_frustum_planes(fov, znear, zfar);
+	setup_frustum_planes(fov, aspect_ratio, znear, zfar);
 	
 	vec3 lighting_dir;
 	lighting_dir.x = 1.0;
@@ -471,7 +470,7 @@ void update() {
 
 void render() {
 
-	draw_gradient(0xFF444444, 0xFF880088);
+	draw_gradient(0xFF444444, 0xFF7D013D);
 
 	if(flags & F_SORT_Z_DEPTH) {
 		merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);
