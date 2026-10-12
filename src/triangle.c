@@ -39,7 +39,8 @@ void merge_sort_merge(Triangle *a, Triangle *b, int start, int middle, int end) 
 			middle_i++;
 		}
 	}
-
+    
+    int len = end - start;
 	for(int i = start; i < end; i++)
 		a[i] = b[i];
 }

@@ -27,6 +27,7 @@
 #endif
 
 #define FPS 60
+#define CLIPPING_POLYGON_CAPACITY 9
 
 enum {
 	FRUSTUM_LEFT,
@@ -43,6 +44,12 @@ typedef struct {
 	vec3 normal;
 } Plane;
 
+typedef struct {
+    vec4 *points;
+    int size;
+    int capacity;
+} Polygon;
+
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
@@ -53,7 +60,9 @@ float camera_theta = M_PI / 2.0;
 Lighting lighting;
 Texture texture;
 mat4 projection_matrix;
+
 Plane frustum_planes[n_frustum_planes];
+Polygon clipped;
 
 int mesh_count;
 Mesh *meshes;
@@ -61,8 +70,6 @@ Mesh *meshes;
 void rotate_camera_y(float theta) {
 	camera_target.x = camera_position.x + cos(theta);
 	camera_target.z = camera_position.z + -sin(theta);
-
-	printf("camera_target.x = %f, camera_target.z = %f\n", camera_target.x, camera_target.z);
 }
 
 int point_is_inside_plane(vec3 point, Plane p) {
@@ -78,7 +85,6 @@ void setup_frustum_planes(float fov, float aspect_ratio, float znear, float zfar
 		{ 0., 0., 0.,},
 		{ .x = cos((fov / aspect_ratio) / 2.0), .y = 0., .z = sin((fov / aspect_ratio) / 2.0) }
 	};
-
 	frustum_planes[FRUSTUM_TOP] = (Plane){
 		{ 0., 0., 0.,},
 		{ .x = 0, .y = -cos(fov / 2.0), .z = sin(fov / 2.0) }
@@ -103,8 +109,6 @@ vec2 project(vec3 v3) {
     projected.y = (v3.z == 0.0) ? 0.0 : (fov_factor * v3.y) / v3.z;
     return projected;
 }
-
-typedef struct { vec4 *points; int size; } Polygon;
 
 Polygon polygon_from_triangle(Triangle t) {
 	Polygon p;
@@ -135,29 +139,25 @@ vec4 get_intersection_with_plane(vec4 inside, vec4 outside, Plane p) {
 	if (t <= 0.0) return inside;
 	if (t >= 1.0) return outside;
 	
-	float x, y;
 	vec4 result;
-	x = inside.x;
-	y = outside.x;
-	result.x = mylerp(x, y, t);
+	result.x = mylerp(inside.x, outside.x, t);
 	result.y = mylerp(inside.y, outside.y, t);
 	result.z = mylerp(inside.z, outside.z, t);
 	result.w = mylerp(inside.w, outside.w, t);
 	return result;
-	
 }
 
-Polygon clip_polygon_against_plane(Polygon polygon, Plane plane) {
-	vec4 *inside = (vec4 *) malloc(sizeof(vec4) * (polygon.size + 1));
+void clip_polygon_against_plane(Polygon *polygon, Plane plane) {
+	vec4 inside[CLIPPING_POLYGON_CAPACITY];
 	int clipped_size = 0;
 
-	vec4 prev = polygon.points[0];
+	vec4 prev = polygon->points[0];
 	int prev_was_inside = point_is_inside_plane(vec3_from_vec4(prev), plane);
 	if (prev_was_inside) inside[clipped_size++] = prev;
 
-	for (int i = 1; i < polygon.size + 1; i++) {
-		int index = i < polygon.size ? i : 0;
-		vec4 next = polygon.points[(i < polygon.size) ? i : 0];
+	for (int i = 1; i < polygon->size + 1; i++) {
+		int index = i < polygon->size ? i : 0;
+		vec4 next = polygon->points[(i < polygon->size) ? i : 0];
 		int next_is_inside = point_is_inside_plane(vec3_from_vec4(next), plane);
 
 		if (prev_was_inside && next_is_inside) {
@@ -178,29 +178,19 @@ Polygon clip_polygon_against_plane(Polygon polygon, Plane plane) {
 		prev_was_inside = next_is_inside;
 	}
 	
-	assert(clipped_size <= (polygon.size + 1));
-	Polygon clipped;
-	clipped.points = inside;
-	clipped.size = clipped_size;
-	return clipped;
+	assert(clipped_size <= polygon->capacity);
+
+    for (int i = 0; i < clipped_size; i++) polygon->points[i] = inside[i];
+	polygon->size = clipped_size;
 }
 
-Polygon clip_frustums(Triangle t) {
-	Polygon p;
-	p.size = 3;
-	p.points = (vec4 *)malloc(sizeof(vec4) * p.size);
-	p.points[0] = t.points[0];
-	p.points[1] = t.points[1];
-	p.points[2] = t.points[2];
-
-	p = clip_polygon_against_plane(p, frustum_planes[0]);
-	p = clip_polygon_against_plane(p, frustum_planes[1]);
-	p = clip_polygon_against_plane(p, frustum_planes[2]);
-	p = clip_polygon_against_plane(p, frustum_planes[3]);
-	p = clip_polygon_against_plane(p, frustum_planes[4]);
-	p = clip_polygon_against_plane(p, frustum_planes[5]);
-
-	// assert(p.size <= 3);
+void clip_frustums(Triangle t, Polygon *p) {
+	clip_polygon_against_plane(p, frustum_planes[0]);
+	clip_polygon_against_plane(p, frustum_planes[1]);
+	clip_polygon_against_plane(p, frustum_planes[2]);
+	clip_polygon_against_plane(p, frustum_planes[3]);
+	clip_polygon_against_plane(p, frustum_planes[4]);
+	clip_polygon_against_plane(p, frustum_planes[5]);
 }
 
 void print_vec4(vec4 v) {
@@ -208,20 +198,19 @@ void print_vec4(vec4 v) {
 }
 
 void setup() {
-		
+	
+    // Renderer
+	init_renderer(WIDTH, HEIGHT);
+    
+    // Meshes
 	mesh_count = 3;
 	meshes = (Mesh *)malloc(sizeof(Mesh) * mesh_count);
 
-	init_renderer(WIDTH, HEIGHT);
 	// Texture png_texture;
 	load_texture_from_file("assets/f22.png", &texture);
-	// load_cube_mesh_data();
-	
-
-	load_obj_file("assets/f22.obj", &(meshes[0]));
-	mesh_count = 1;
-	// load_obj_file("assets/f22.obj", &(meshes[1]));
-	// load_obj_file("assets/f22.obj", &(meshes[2]));
+	    
+    for (int i = 0; i < mesh_count; i++)
+        load_obj_file("assets/f22.obj", &(meshes[i]));
 
 	rotate_camera_y(camera_theta);
 	// set_redbrick_texture(&texture);
@@ -252,12 +241,12 @@ void setup() {
 		// flags = (flags | F_DRAW_TEXTURE);
 		flags = (flags | F_SORT_Z_DEPTH);
 	}
-
+    
+    // Projection
 	float fov = M_PI / 3.0; // 60deg
 	float aspect_ratio = ((float)window_height / (float)window_width);
 	float znear = 0.1;
 	float zfar = 10.0;
-
 
 	projection_matrix = mat4_projection_matrix(
 		fov,
@@ -265,32 +254,20 @@ void setup() {
 		znear,
 		zfar
 	);
-
+    
+    // Clipping
 	setup_frustum_planes(fov, aspect_ratio, znear, zfar);
-	
+
+    // clipping starts with 3 points, and we have 6 clipping stages that add a maximum of 1 vertex to the polygon each, so max size is 9
+    clipped.capacity = CLIPPING_POLYGON_CAPACITY;
+    clipped.points = (vec4 *)malloc(sizeof(clipped.points[0]) * clipped.capacity);
+	    
+    // Lighting
 	vec3 lighting_dir;
 	lighting_dir.x = 1.0;
 	lighting_dir.y = 0.0;
 	lighting_dir.z = 1.0;
 	lighting.global_illumination_direction = vec3_normalise(lighting_dir);
-
-
-	Polygon p;
-	p.size = 3;
-	p.points = (vec4 *)malloc(sizeof(vec4) * p.size);
-	p.points[0] = (vec4) { .x = 1., .y = 1., .z = 0.0, .w = 0.0 };
-	p.points[1] = (vec4) { .x = -1., .y = 1., .z = 0.0, .w = 0.0 };
-	p.points[2] = (vec4) { .x = 2., .y = -1., .z = 0.0, .w = 0.0 };
-
-	Plane plane;
-	plane.point = (vec3) { .x = 0.0, .y = 0.0, .z = 0.0 };
-	plane.normal = (vec3) { .x = 0.0, .y = 1.0, .z = 0.0 };
-	
-	Polygon clipped = clip_polygon_against_plane(p, plane);
-	for (int i = 0; i < clipped.size; i++) {
-		vec4 v = clipped.points[i];
-		print_vec4(clipped.points[i]);
-	}
 }
 
 void camera_update() {
@@ -425,7 +402,13 @@ void update() {
 				clipping_triangle.points[0] = vec4_from_vec3(transformed_face_vertices[0]);
 				clipping_triangle.points[1] = vec4_from_vec3(transformed_face_vertices[1]);
 				clipping_triangle.points[2] = vec4_from_vec3(transformed_face_vertices[2]);
-				Polygon clipped = clip_frustums(clipping_triangle);
+
+                clipped.size = 3;
+                clipped.points[0] = clipping_triangle.points[0];
+                clipped.points[1] = clipping_triangle.points[1];
+                clipped.points[2] = clipping_triangle.points[2];
+
+				clip_frustums(clipping_triangle, &clipped);
 
 				for (int tri_index = 1; tri_index < clipped.size - 1; tri_index++) {
 					Triangle triangle;
@@ -446,7 +429,7 @@ void update() {
 						projected_point.y = (window_height / 2.0) + projected_point.y;
 						triangle.points[j] = projected_point;
 						
-						triangle.avg_depth += transformed_face_vertices[j].z * (1.0 / 3.0);
+						triangle.avg_depth += face_world_space_vertices[j].z * (1.0 / 3.0);
 					}
 					
 					// this is gonna assume global illumination direction is a unit vector

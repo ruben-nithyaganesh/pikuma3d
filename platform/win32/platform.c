@@ -76,15 +76,23 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					}break;
 					case 'R':
 					{
-						if (isKeyReleased) {
-							flags = flag_toggle(flags, F_ROTATE);
-						}
+						if (isKeyReleased) flags = flag_toggle(flags, F_ROTATE);
 					}break;
 					case 'V':
 					{
-						if (isKeyReleased) {
-							flags = flag_toggle(flags, F_DRAW_VERTICES);
-						}
+						if (isKeyReleased) flags = flag_toggle(flags, F_DRAW_VERTICES);
+					}break;
+					case 'E':
+					{
+						if (isKeyReleased) flags = flag_toggle(flags, F_DRAW_LINES);
+					}break;
+					case 'B':
+					{
+						if (isKeyReleased) flags = flag_toggle(flags, F_BACK_FACE_CULLING);
+					}break;
+					case 'Z':
+					{
+						if (isKeyReleased) flags = flag_toggle(flags, F_SORT_Z_DEPTH);
 					}break;
 					case 'W':
 					{
