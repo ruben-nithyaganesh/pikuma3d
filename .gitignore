@@ -1,7 +1,7 @@
 .vscode/*
 *.opendb
 .vs/*
-*vs/*
+*/.vs/*
 *.exe
 *swp*
 *~
@@ -9,7 +9,6 @@
 *.ilk
 *.obj
 *.exe
-build/sdl/sdl_renderer
 sdl_renderer
 *.vs
 */.vs
@@ -17,3 +16,5 @@ sdl_renderer
 *.suo
 *.db
 *.db-shm
+
+build/*
