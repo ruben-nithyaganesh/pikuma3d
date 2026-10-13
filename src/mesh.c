@@ -105,7 +105,7 @@ void load_obj_file(char *filename, Mesh *mesh) {
 		}
 		else if(type == 'f') {
 			Face face;
-			// fscanf(obj_file, " %d %d %d\n", &f1, &f2, &f3);
+			// fscanf(obj_file, " %d %d %d\n", &face.a, &face.b, &face.c);
 			fscanf(obj_file, " %d/%d/%d %d/%d/%d %d/%d/%d\n",\
 				&face.a, &face.a_uv, &face.a_n,
 				&face.b, &face.b_uv, &face.b_n,

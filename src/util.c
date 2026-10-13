@@ -32,7 +32,7 @@ void swap_float(float *a, float *b) {
 
 int bound(int x, int lower, int upper) {
 	if(x < lower) return 0;
-	if(x > upper) return upper;
+	if(x >= upper) return upper - 1;
 	return x;
 }
 

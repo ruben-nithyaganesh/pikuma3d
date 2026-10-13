@@ -17,14 +17,16 @@
 	#define M_PI 3.14159265358979323846
 #endif
 
-#ifndef WIN32_BUILD
-	#define WIDTH 1280
-	#define HEIGHT 720
-#endif
-#ifdef WIN32_BUILD
-	#define WIDTH 1920
-	#define HEIGHT 1080
-#endif
+#define WIDTH 640
+#define HEIGHT 480
+// #ifndef WIN32_BUILD
+// 	#define WIDTH 1280
+// 	#define HEIGHT 720
+// #endif
+// #ifdef WIN32_BUILD
+// 	#define WIDTH 1280
+// 	#define HEIGHT 720
+// #endif
 
 #define FPS 60
 #define CLIPPING_POLYGON_CAPACITY 9
@@ -53,8 +55,8 @@ typedef struct {
 static float MS_PER_FRAME = (1000.0 / FPS);
 
 const float fov_factor = 840.0;
-vec3 camera_position = { 0., 0., 2.};
-vec3 camera_target = { 0., 0., 0. };
+vec3 camera_position = { 0., 0., 0.};
+vec3 camera_target = { 0., 0., -1. };
 float camera_theta = M_PI / 2.0;
 
 Lighting lighting;
@@ -216,15 +218,17 @@ void setup() {
 	// set_redbrick_texture(&texture);
 
 	int face_count = 0;
+    float scale_factor = .3;
 	for(int i = 0; i < mesh_count; i++) {
 		face_count += meshes[i].face_count;
-		meshes[i].scale = (vec3) { .1, .1, .1 };
+		meshes[i].scale = (vec3) { scale_factor, scale_factor, scale_factor };
 		meshes[i].translation = (vec3) { .0, .0, -1 };
 		meshes[i].rotation = (vec3) { .0, .0, .0 };
 	}
 
-	meshes[1].translation.x = 2.0;
-	meshes[2].translation.x = 4.0;
+	meshes[0].translation.z = 4.0;
+	meshes[1].translation.z = 2.0;
+	meshes[2].translation.z = -2.0;
 	
 	triangles_to_render = (Triangle *) malloc(10 * face_count * sizeof(Triangle));
 	triangles_to_render_scratch = (Triangle *) malloc(10 * face_count * sizeof(Triangle));
@@ -237,7 +241,7 @@ void setup() {
 		flags = 0x00000000;
 		flags = (flags | F_ROTATE);
 		flags = (flags | F_BACK_FACE_CULLING);
-		flags = (flags | F_FILL);
+		// flags = (flags | F_FILL);
 		// flags = (flags | F_DRAW_TEXTURE);
 		flags = (flags | F_SORT_Z_DEPTH);
 	}
@@ -245,7 +249,7 @@ void setup() {
     // Projection
 	float fov = M_PI / 3.0; // 60deg
 	float aspect_ratio = ((float)window_height / (float)window_width);
-	float znear = 0.1;
+	float znear = 0.2;
 	float zfar = 10.0;
 
 	projection_matrix = mat4_projection_matrix(
@@ -333,10 +337,9 @@ void update() {
 		Mesh mesh = meshes[mesh_index];
 
 		if(flags & F_ROTATE) {
-			meshes[mesh_index].rotation.x += 0.008;
-			meshes[mesh_index].rotation.z += 0.008;
+			meshes[mesh_index].rotation.x += 0.004;
+			meshes[mesh_index].rotation.z += 0.004;
 		}
-
 
 		mat4 scale_matrix = mat4_scale_matrix(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 		mat4 translation_matrix = mat4_translation_matrix(mesh.translation.x, mesh.translation.y, mesh.translation.z);
@@ -352,7 +355,6 @@ void update() {
 		transform = mat4_mul(translation_matrix, transform);
 
 		// transform = mat4_mul(view_matrix, transform);
-
 		for(int i = 0; i < mesh.face_count; i++) {
 			Face face = mesh.faces[i];
 			vec3 face_vertices[3];
@@ -389,10 +391,10 @@ void update() {
 			
 			float back_face_cull_dot_prod = vec3_dot(normal, camera_ray);
 			if(!(flags & F_BACK_FACE_CULLING))
-				back_face_cull_dot_prod = 1.0;
+				back_face_cull_dot_prod = -1.0;
 			
 
-			int should_render_face = (back_face_cull_dot_prod > 0.0);
+			int should_render_face = (back_face_cull_dot_prod < 0.0);
 
 			// if we should render the current face, project face vertices
 			// into a triangle to be rendered
@@ -440,9 +442,9 @@ void update() {
 					
 					triangle.intensity = light_intensity;
 					triangle.col = tri_color;
-					triangle.tex_coords[0] = mesh.tex_uv[face.a_uv - 1];
-					triangle.tex_coords[1] = mesh.tex_uv[face.b_uv - 1];
-					triangle.tex_coords[2] = mesh.tex_uv[face.c_uv - 1];
+					// triangle.tex_coords[0] = mesh.tex_uv[face.a_uv - 1];
+					// triangle.tex_coords[1] = mesh.tex_uv[face.b_uv - 1];
+					// triangle.tex_coords[2] = mesh.tex_uv[face.c_uv - 1];
 
 					triangles_to_render[triangle_count++] = triangle;
 				}
@@ -455,28 +457,37 @@ void render() {
 
 	draw_gradient(0xFF444444, 0xFF7D013D);
 
-	if(flags & F_SORT_Z_DEPTH) {
-		merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);
-	}
+	// if(flags & F_SORT_Z_DEPTH) {
+	// 	merge_sort_triangles(triangles_to_render, triangles_to_render_scratch, triangle_count);
+	// }
 
 	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
-			
-		if(flags & F_DRAW_TEXTURE) {
+
+        if(flags & F_SORT_Z_DEPTH) {
+			fill_z_buff_triangle(
+				triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
+				triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
+				triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
+				triangle.col
+			);
+        }
+        else if(flags & F_DRAW_TEXTURE) {
 			textured_triangle(
 				triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
 				triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
 				triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
 				texture, triangle.intensity
 			);
-		} else if(flags & F_FILL) {
-			fill_triangle(
-				triangle.col,
-				triangle.points[0].x, triangle.points[0].y,
-				triangle.points[1].x, triangle.points[1].y,
-				triangle.points[2].x, triangle.points[2].y
-			);
 		}
+        // else if(flags & F_FILL) {
+		// 	fill_triangle(
+		// 		triangle.col,
+		// 		triangle.points[0].x, triangle.points[0].y,
+		// 		triangle.points[1].x, triangle.points[1].y,
+		// 		triangle.points[2].x, triangle.points[2].y
+		// 	);
+		// }
 
 		if(flags & F_DRAW_VERTICES) {
 			uint32_t rect_col = 0xFFFF0000;
@@ -484,7 +495,6 @@ void render() {
 			draw_rect(rect_col, triangle.points[1].y - 1, triangle.points[1].x - 1, 3, 3);
 			draw_rect(rect_col, triangle.points[2].y - 1, triangle.points[2].x - 1, 3, 3);
 		}
-
 		if(flags & F_DRAW_LINES) {
 			draw_triangle(
 				0xFFFFFFFF,

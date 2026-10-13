@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "util.h"
 #include <math.h>
+#include <assert.h>
 
 float *z_buffer;
 void init_renderer(int width, int height) {
@@ -127,6 +128,150 @@ void draw_texel(
 		// col = lerp_pixel(col, intensity);
 		draw_pixel(col, x, y);
 		z_buffer[window_width * y + x] = interpolated_reciprocal_w;
+	}
+}
+
+void draw_z_buff_pixel(
+	int x, int y,
+	vec4 a, vec4 b, vec4 c,
+	uint32_t col
+) {
+	vec2 p = { x, y };
+	vec3 weights = barycentric_weights(
+		(vec2){ a.x, a.y },
+		(vec2){ b.x, b.y },
+		(vec2){ c.x, c.y },
+		p
+	);
+
+	float alpha = weights.x;
+	float beta = weights.y;
+	float gamma = weights.z;
+
+	float interpolated_reciprocal_w = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
+    float interp_w = 1 / interpolated_reciprocal_w;
+
+    
+    if (x >= 0 && x < window_width && y >= 0 && y < window_height) {
+        if (z_buffer[window_width * y + x] >= interp_w) {
+            draw_pixel(col, x, y);
+            z_buffer[window_width * y + x] = interp_w;
+        }
+    }
+}
+
+void fill_z_buff_triangle(
+	int x0, int y0, float z0, float w0, float u0, float v0,
+	int x1, int y1, float z1, float w1, float u1, float v1,
+	int x2, int y2, float z2, float w2, float u2, float v2,
+	uint32_t col
+) {
+	// sort triangle points in order of y
+	// y0 < y1 < y2
+	if(y1 > y2) { 
+		swap_int(&x1, &x2);
+		swap_int(&y1, &y2);
+		swap_float(&z1, &z2);
+		swap_float(&w1, &w2);
+		swap_float(&u1, &u2);
+		swap_float(&v1, &v2);
+	}
+
+	if(y0 > y1) {
+		swap_int(&x0, &x1);
+		swap_int(&y0, &y1);
+		swap_float(&z0, &z1);
+		swap_float(&w0, &w1);
+		swap_float(&u0, &u1);
+		swap_float(&v0, &v1);
+	}
+	
+	if(y1 > y2) {
+		swap_int(&x1, &x2);
+		swap_int(&y1, &y2);
+		swap_float(&z1, &z2);
+		swap_float(&w1, &w2);
+		swap_float(&u1, &u2);
+		swap_float(&v1, &v2);
+	}
+
+	vec4 point_a = { x0, y0, z0, w0 };
+	vec4 point_b = { x1, y1, z1, w1 };
+	vec4 point_c = { x2, y2, z2, w2 };
+	
+	// get (Mx, y1), intersection of triangle midpoint line
+	int Mx = x0;
+	if (y2 != y0) {
+		Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
+	}
+
+	// flat bottom triangle
+	int delta_y = (y1 - y0);
+	int delta_x1 = (x1 - x0);
+	int delta_x2 = (Mx - x0);
+	
+	float inv_slope_1 = (delta_y == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y);
+	float inv_slope_2 = (delta_y == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y);
+	
+	float x_start = (float)x0 + inv_slope_1;
+	float x_end = (float)x0 + inv_slope_2;
+
+	if(x_start > x_end) {
+		swap_float(&x_start, &x_end);
+		swap_float(&inv_slope_1, &inv_slope_2);
+	}
+
+	for(int y = bound(y0 + 1, 0, window_height); y <= bound(y1, 0, window_height); y++) {
+
+		for(int x = bound(round(x_start), 0, window_width); x <= bound(round(x_end), 0, window_width); x++) {
+			
+			draw_z_buff_pixel(
+                x, y,
+				point_a, point_b, point_c,
+				col
+			);
+
+			// if(x % 2 == 0) {
+			// 	draw_pixel(0xFFFF0000, x, y);
+			// } else {
+			// 	draw_pixel(0xFF000000, x, y);
+			// }
+		}
+
+		x_start += inv_slope_1;
+		x_end += inv_slope_2;
+
+	}
+
+	// flat top triangle
+	delta_y = (y2 - y1);
+	delta_x1 = (x2 - x1);
+	delta_x2 = (x2 - Mx);
+
+	inv_slope_1 = (delta_y == 0) ? 0.0 : ((float) delta_x1 / (float) delta_y);
+	inv_slope_2 = (delta_y == 0) ? 0.0 : ((float) delta_x2 / (float) delta_y);
+
+	x_start = (float)x2 - inv_slope_1;
+	x_end = (float)x2 - inv_slope_2;
+
+	if(x_start > x_end) {
+		swap_float(&x_start, &x_end);
+		swap_float(&inv_slope_1, &inv_slope_2);
+	}
+	
+	for(int y = bound(y2 - 1, 0, window_height); y >= bound(y1, 0, window_height); --y) {
+		for(int x = bound(round(x_start), 0, window_width); x <= bound(round(x_end), 0, window_width); x++) {
+
+			draw_z_buff_pixel(
+                x, y,
+				point_a, point_b, point_c,
+				col
+			);
+		}
+
+		x_start -= inv_slope_1;
+		x_end -= inv_slope_2;
+
 	}
 }
 
