@@ -53,6 +53,41 @@ void draw_triangle(uint32_t value, int x0, int y0, int x1, int y1, int x2, int y
 	draw_line(value, x2, y2, x0, y0);
 }
 
+// a collection of terms that only depend on the triangle points,
+// i.e, can be calculated per triangle rather than per pixel
+typedef struct {
+  float inverse_parallelogram_area;
+  vec2 ac;
+  vec2 a, b, c;
+  float aw, bw, cw;
+} Barycentric_Params;
+
+Barycentric_Params calculate_barycentric_params(vec4 a, vec4 b, vec4 c) {
+  Barycentric_Params params;
+
+	vec2 a2 = { a.x, a.y };
+	vec2 b2 = { b.x, b.y };
+	vec2 c2 = { c.x, c.y };
+
+	vec2 ac = vec2_sub(c2, a2);
+	vec2 ab = vec2_sub(b2, a2);
+
+	float parallelogram_area = (ac.x * ab.y - ac.y * ab.x);
+  params.inverse_parallelogram_area = (1.0 / parallelogram_area);
+    
+  params.ac = ac;
+
+  params.a = a2;
+  params.b = b2;
+  params.c = c2;
+
+  params.aw = a.w;
+  params.bw = b.w;
+  params.cw = c.w;
+
+  return params;
+}
+
 vec3 barycentric_weights(vec2 a, vec2 b, vec2 c, vec2 p) {
 	vec2 ac = vec2_sub(c, a);
 	vec2 ab = vec2_sub(b, a);
@@ -90,74 +125,30 @@ uint32_t lerp_pixel(uint32_t c, float i) {
 	return lerped;
 }
 
-void draw_texel(
-	int x, int y,
-	vec4 a, vec4 b, vec4 c,
-	float u0, float v0, float u1, float v1, float u2, float v2,
-	Texture texture, float intensity
-) {
-	vec2 p = { x, y };
-	vec3 weights = barycentric_weights(
-		(vec2){ a.x, a.y },
-		(vec2){ b.x, b.y },
-		(vec2){ c.x, c.y },
-		p
-	);
-
-	float alpha = weights.x;
-	float beta = weights.y;
-	float gamma = weights.z;
-
-	float interpolated_u;
-	float interpolated_v;
-	float interpolated_reciprocal_w;
-	
-	interpolated_u = (u0 / a.w) * alpha + (u1 / b.w) * beta + (u2 / c.w) * gamma;
-	interpolated_v = (v0 / a.w) * alpha + (v1 / b.w) * beta + (v2 / c.w) * gamma;
-
-	interpolated_reciprocal_w = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
-
-	interpolated_u /= interpolated_reciprocal_w;
-	interpolated_v /= interpolated_reciprocal_w;
-
-	int tex_x = (int)(texture.width * interpolated_u);
-	int tex_y = (int)(texture.height * interpolated_v);
-	
-	if (z_buffer[window_width * y + x] >= interpolated_reciprocal_w) {
-		uint32_t col = texture.data[tex_y * texture.width + tex_x];
-		// col = lerp_pixel(col, intensity);
-		draw_pixel(col, x, y);
-		z_buffer[window_width * y + x] = interpolated_reciprocal_w;
-	}
-}
-
 void draw_z_buff_pixel(
 	int x, int y,
 	vec4 a, vec4 b, vec4 c,
+  Barycentric_Params params,
 	uint32_t col
 ) {
-	vec2 p = { x, y };
-	vec3 weights = barycentric_weights(
-		(vec2){ a.x, a.y },
-		(vec2){ b.x, b.y },
-		(vec2){ c.x, c.y },
-		p
-	);
+  // don't think we need this check because we bound the for loops in fill_z_buff_triangle
+  // if (x >= 0 && x < window_width && y >= 0 && y < window_height) {
+    vec2 p = { x, y };
+    vec2 ap = vec2_sub(p, params.a);
+    vec2 pb = vec2_sub(params.b, p);
+    vec2 pc = vec2_sub(params.c, p);
 
-	float alpha = weights.x;
-	float beta = weights.y;
-	float gamma = weights.z;
+    float alpha = (pc.x * pb.y - pc.y * pb.x) * params.inverse_parallelogram_area;
+    float beta = (params.ac.x * ap.y - params.ac.y * ap.x) * params.inverse_parallelogram_area;
+    float gamma = 1.0 - alpha - beta;
 
-	float interpolated_reciprocal_w = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
-    float interp_w = 1 / interpolated_reciprocal_w;
+    float interp_w = params.aw * alpha + params.bw * beta + params.cw * gamma;
 
-    
-    if (x >= 0 && x < window_width && y >= 0 && y < window_height) {
-        if (z_buffer[window_width * y + x] >= interp_w) {
-            draw_pixel(col, x, y);
-            z_buffer[window_width * y + x] = interp_w;
-        }
+    if (z_buffer[window_width * y + x] >= interp_w) {
+        draw_pixel(col, x, y);
+        z_buffer[window_width * y + x] = interp_w;
     }
+  // }
 }
 
 void fill_z_buff_triangle(
@@ -198,12 +189,11 @@ void fill_z_buff_triangle(
 	vec4 point_a = { x0, y0, z0, w0 };
 	vec4 point_b = { x1, y1, z1, w1 };
 	vec4 point_c = { x2, y2, z2, w2 };
+  Barycentric_Params params = calculate_barycentric_params(point_a, point_b, point_c);
 	
 	// get (Mx, y1), intersection of triangle midpoint line
 	int Mx = x0;
-	if (y2 != y0) {
-		Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
-	}
+	if (y2 != y0) Mx = (((x2 - x0) * (y1 - y0)) / (y2 - y0)) + x0;
 
 	// flat bottom triangle
 	int delta_y = (y1 - y0);
@@ -222,25 +212,17 @@ void fill_z_buff_triangle(
 	}
 
 	for(int y = bound(y0 + 1, 0, window_height); y <= bound(y1, 0, window_height); y++) {
-
 		for(int x = bound(round(x_start), 0, window_width); x <= bound(round(x_end), 0, window_width); x++) {
-			
 			draw_z_buff_pixel(
-                x, y,
+        x, y,
 				point_a, point_b, point_c,
+        params,
 				col
 			);
-
-			// if(x % 2 == 0) {
-			// 	draw_pixel(0xFFFF0000, x, y);
-			// } else {
-			// 	draw_pixel(0xFF000000, x, y);
-			// }
 		}
 
 		x_start += inv_slope_1;
 		x_end += inv_slope_2;
-
 	}
 
 	// flat top triangle
@@ -261,17 +243,57 @@ void fill_z_buff_triangle(
 	
 	for(int y = bound(y2 - 1, 0, window_height); y >= bound(y1, 0, window_height); --y) {
 		for(int x = bound(round(x_start), 0, window_width); x <= bound(round(x_end), 0, window_width); x++) {
-
 			draw_z_buff_pixel(
-                x, y,
+        x, y,
 				point_a, point_b, point_c,
+        params,
 				col
 			);
 		}
 
 		x_start -= inv_slope_1;
 		x_end -= inv_slope_2;
+	}
+}
 
+void draw_texel(
+	int x, int y,
+	vec4 a, vec4 b, vec4 c,
+	float u0, float v0, float u1, float v1, float u2, float v2,
+	Texture texture, float intensity
+) {
+	vec2 p = { x, y };
+	vec3 weights = barycentric_weights(
+		(vec2){ a.x, a.y },
+		(vec2){ b.x, b.y },
+		(vec2){ c.x, c.y },
+		p
+	);
+
+	float alpha = weights.x;
+	float beta = weights.y;
+	float gamma = weights.z;
+
+	float interpolated_u;
+	float interpolated_v;
+	float interpolated_reciprocal_w;
+	
+	interpolated_u = (u0 / a.w) * alpha + (u1 / b.w) * beta + (u2 / c.w) * gamma;
+	interpolated_v = (v0 / a.w) * alpha + (v1 / b.w) * beta + (v2 / c.w) * gamma;
+
+	interpolated_reciprocal_w = (1.0 / a.w) * alpha + (1.0 / b.w) * beta + (1.0 / c.w) * gamma;
+
+	interpolated_u /= interpolated_reciprocal_w;
+	interpolated_v /= interpolated_reciprocal_w;
+
+	int tex_x = (int)(texture.width * interpolated_u);
+	int tex_y = (int)(texture.height * interpolated_v);
+	
+	if (z_buffer[window_width * y + x] >= interpolated_reciprocal_w) {
+		uint32_t col = texture.data[tex_y * texture.width + tex_x];
+		// col = lerp_pixel(col, intensity);
+		draw_pixel(col, x, y);
+		z_buffer[window_width * y + x] = interpolated_reciprocal_w;
 	}
 }
 

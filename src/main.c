@@ -201,30 +201,30 @@ void print_vec4(vec4 v) {
 
 void setup() {
 	
-    // Renderer
+  // Renderer
 	init_renderer(WIDTH, HEIGHT);
     
-    // Meshes
+  // Meshes
 	mesh_count = 3;
 	meshes = (Mesh *)malloc(sizeof(Mesh) * mesh_count);
 
 	// Texture png_texture;
 	load_texture_from_file("assets/f22.png", &texture);
 	    
-    for (int i = 0; i < mesh_count; i++)
-        load_obj_file("assets/f22.obj", &(meshes[i]));
+  for (int i = 0; i < mesh_count; i++)
+    load_obj_file("assets/f22.obj", &(meshes[i]));
 
 	rotate_camera_y(camera_theta);
 	// set_redbrick_texture(&texture);
 
-	int face_count = 0;
-    float scale_factor = .3;
-	for(int i = 0; i < mesh_count; i++) {
-		face_count += meshes[i].face_count;
-		meshes[i].scale = (vec3) { scale_factor, scale_factor, scale_factor };
-		meshes[i].translation = (vec3) { .0, .0, -1 };
-		meshes[i].rotation = (vec3) { .0, .0, .0 };
-	}
+  int face_count = 0;
+  float scale_factor = .3;
+  for(int i = 0; i < mesh_count; i++) {
+    face_count += meshes[i].face_count;
+    meshes[i].scale = (vec3) { scale_factor, scale_factor, scale_factor };
+    meshes[i].translation = (vec3) { .0, .0, -1 };
+    meshes[i].rotation = (vec3) { .0, .0, .0 };
+  }
 
 	meshes[0].translation.z = 4.0;
 	meshes[1].translation.z = 2.0;
@@ -259,14 +259,14 @@ void setup() {
 		zfar
 	);
     
-    // Clipping
+  // Clipping
 	setup_frustum_planes(fov, aspect_ratio, znear, zfar);
 
-    // clipping starts with 3 points, and we have 6 clipping stages that add a maximum of 1 vertex to the polygon each, so max size is 9
-    clipped.capacity = CLIPPING_POLYGON_CAPACITY;
-    clipped.points = (vec4 *)malloc(sizeof(clipped.points[0]) * clipped.capacity);
+  // clipping starts with 3 points, and we have 6 clipping stages that add a maximum of 1 vertex to the polygon each, so max size is 9
+  clipped.capacity = CLIPPING_POLYGON_CAPACITY;
+  clipped.points = (vec4 *)malloc(sizeof(clipped.points[0]) * clipped.capacity);
 	    
-    // Lighting
+  // Lighting
 	vec3 lighting_dir;
 	lighting_dir.x = 1.0;
 	lighting_dir.y = 0.0;
@@ -400,15 +400,15 @@ void update() {
 			// into a triangle to be rendered
 			if(should_render_face) {
 				
-			    Triangle clipping_triangle;
+			  Triangle clipping_triangle;
 				clipping_triangle.points[0] = vec4_from_vec3(transformed_face_vertices[0]);
 				clipping_triangle.points[1] = vec4_from_vec3(transformed_face_vertices[1]);
 				clipping_triangle.points[2] = vec4_from_vec3(transformed_face_vertices[2]);
 
-                clipped.size = 3;
-                clipped.points[0] = clipping_triangle.points[0];
-                clipped.points[1] = clipping_triangle.points[1];
-                clipped.points[2] = clipping_triangle.points[2];
+        clipped.size = 3;
+        clipped.points[0] = clipping_triangle.points[0];
+        clipped.points[1] = clipping_triangle.points[1];
+        clipped.points[2] = clipping_triangle.points[2];
 
 				clip_frustums(clipping_triangle, &clipped);
 
@@ -463,32 +463,34 @@ void render() {
 
 	for(int i = 0; i < triangle_count; i++) {
 		Triangle triangle = triangles_to_render[i];
-
-        if(flags & F_SORT_Z_DEPTH) {
-			fill_z_buff_triangle(
-				triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
-				triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
-				triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
-				triangle.col
-			);
-        }
-        else if(flags & F_DRAW_TEXTURE) {
-			textured_triangle(
-				triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
-				triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
-				triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
-				texture, triangle.intensity
+    
+    // Decide how to draw triangle
+    if(flags & F_SORT_Z_DEPTH) {
+      fill_z_buff_triangle(
+        triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
+        triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
+        triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
+        triangle.col
+      );
+    }
+    else if(flags & F_DRAW_TEXTURE) {
+      textured_triangle(
+        triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.tex_coords[0].u, triangle.tex_coords[0].v,
+        triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.tex_coords[1].u, triangle.tex_coords[1].v,
+        triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.tex_coords[2].u, triangle.tex_coords[2].v,
+        texture, triangle.intensity
+      );
+    }
+    else if(flags & F_FILL) {
+			fill_triangle(
+				triangle.col,
+				triangle.points[0].x, triangle.points[0].y,
+				triangle.points[1].x, triangle.points[1].y,
+				triangle.points[2].x, triangle.points[2].y
 			);
 		}
-        // else if(flags & F_FILL) {
-		// 	fill_triangle(
-		// 		triangle.col,
-		// 		triangle.points[0].x, triangle.points[0].y,
-		// 		triangle.points[1].x, triangle.points[1].y,
-		// 		triangle.points[2].x, triangle.points[2].y
-		// 	);
-		// }
-
+    
+    // Draw other things involving the triangle
 		if(flags & F_DRAW_VERTICES) {
 			uint32_t rect_col = 0xFFFF0000;
 			draw_rect(rect_col, triangle.points[0].y - 1, triangle.points[0].x - 1, 3, 3);

@@ -37,10 +37,4 @@ void fill_z_buff_triangle(
 	uint32_t col
 );
 
-void draw_z_buff_pixel(
-    int x, int y,
-    vec3 weights,
-    uint32_t col
-);
-
 #endif
