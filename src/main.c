@@ -274,7 +274,7 @@ void setup() {
 	lighting.global_illumination_direction = vec3_normalise(lighting_dir);
 }
 
-void camera_update() {
+void camera_update(float dt) {
 	float camera_speed = 0.025;
 	float th = (M_PI) - camera_theta;
 	float dz = sin(th) * camera_speed;
@@ -322,13 +322,13 @@ void camera_update() {
 	}
 }
 
-void update() {
+void update(float dt) {
 
 	for(int i = 0; i < window_width * window_height; i++) {
 		z_buffer[i] = 100000.0;
 	}
 
-	camera_update();
+	camera_update(dt);
 	mat4 view_matrix = mat4_look_at(camera_position, camera_target, (vec3){0., 1., 0});
 
 	triangle_count = 0;
@@ -514,17 +514,20 @@ int renderer_main() {
 	init_window(WIDTH, HEIGHT, 0);
 	setup();
 
-	int last_ms = get_ticks_ms();
+	double last_ms = get_ticks_ms();
+	double dt = 0;
 	while(running) {
 		process_events();
-		update();
+		update(dt);
 		render();
 
 		// enforce fixed frame rate
-		int time_to_wait = MS_PER_FRAME - (get_ticks_ms() - last_ms);
-		if(time_to_wait > 0) {
-			wait_ticks_ms(time_to_wait);
+		double elapsed_ms = get_ticks_ms() - last_ms;
+
+		if (elapsed_ms < MS_PER_FRAME) {
+		  wait_ticks_ms(MS_PER_FRAME - elapsed_ms);
 		}
+
 		last_ms = get_ticks_ms();
   }
 

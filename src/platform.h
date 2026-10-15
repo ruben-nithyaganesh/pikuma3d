@@ -41,6 +41,6 @@ void display_color_buffer();
 
 // platform specific time functions
 void wait_ticks_ms(int ms);
-int	get_ticks_ms();
+double get_ticks_ms();
 
 #endif

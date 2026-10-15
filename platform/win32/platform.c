@@ -6,6 +6,8 @@
 #include <winuser.h>
 #include <synchapi.h>
 
+#pragma comment(lib, "winmm.lib") // Required for timeBeginPeriod
+
 #define WIN32_BUILD
 
 uint32_t controller;
@@ -31,7 +33,7 @@ HWND hwnd;
 static int my_nCmdShow;
 static WindowBuffer window_buffer;
 static HDC handle_device_context;
-static ticks_per_second;
+static LARGE_INTEGER frequency;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
@@ -235,12 +237,12 @@ void wait_ticks_ms(int ms) {
 	Sleep(ms);
 }
 
-int	get_ticks_ms() {
+double get_ticks_ms() {
 	LARGE_INTEGER ticks;
 	if(!QueryPerformanceCounter(&ticks)) {
 		OutputDebugStringA("QueryPerformanceCounter Failed");
 	}
-	return ticks.QuadPart;
+	return ((double)(ticks.QuadPart * 1000) / (double)(frequency.QuadPart));
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
@@ -252,9 +254,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	RegisterClass(&wc);
 	
 	my_nCmdShow = nCmdShow;
-	LARGE_INTEGER frequency;
+  
+  timeBeginPeriod(1);
 	QueryPerformanceFrequency(&frequency);
-	ticks_per_second = frequency.QuadPart;
 
 	renderer_main();
 }
